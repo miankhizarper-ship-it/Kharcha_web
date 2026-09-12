@@ -27,15 +27,15 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" aria-labelledby="how-heading" className="bg-white">
+    <section id="how-it-works" aria-labelledby="how-heading">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-600">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400">
             How it works
           </p>
           <h2
             id="how-heading"
-            className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl"
+            className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl"
           >
             Three steps. That&apos;s the whole app.
           </h2>
@@ -45,13 +45,13 @@ export function HowItWorks() {
         <div className="relative mt-14">
           <div
             aria-hidden="true"
-            className="absolute left-[16%] right-[16%] top-10 hidden border-t-2 border-dashed border-brand-200 lg:block"
+            className="absolute left-[16%] right-[16%] top-10 hidden border-t-2 border-dashed border-brand-200 lg:block dark:border-brand-800"
           />
           <ol className="relative grid gap-6 md:grid-cols-3">
             {STEPS.map((step, index) => (
               <li key={step.number}>
                 <Reveal delay={0.12 * index} className="h-full">
-                  <div className="group h-full rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-[0_1px_2px_rgba(10,36,29,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_20px_40px_-20px_rgba(10,36,29,0.25)]">
+                  <div className="group h-full rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-[0_1px_2px_rgba(10,36,29,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_20px_40px_-20px_rgba(10,36,29,0.25)] dark:border-white/10 dark:bg-white/[0.03] dark:shadow-none dark:hover:border-brand-800/70 dark:hover:bg-white/[0.06] dark:hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.7)]">
                     <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
                       <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                       <step.icon
@@ -62,10 +62,10 @@ export function HowItWorks() {
                     <p className="mt-5 text-xs font-bold uppercase tracking-[0.25em] text-brand-400">
                       {step.number}
                     </p>
-                    <h3 className="mt-1.5 text-xl font-semibold tracking-tight text-slate-900">
+                    <h3 className="mt-1.5 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
                       {step.title}
                     </h3>
-                    <p className="mt-2.5 text-sm leading-relaxed text-slate-600">
+                    <p className="mt-2.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                       {step.description}
                     </p>
                   </div>

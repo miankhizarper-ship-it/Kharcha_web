@@ -45,6 +45,11 @@
 
 :root {
   --radius: 0.625rem;
+  color-scheme: light;
+  /* Scrollbar theme (light) — brand green, quiet track */
+  --scrollbar-thumb: #8ab9a5;
+  --scrollbar-thumb-hover: #57997f;
+  --scrollbar-track: #edf2ef;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -78,38 +83,48 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/*
+ * Dark theme — brand-cohesive "midnight forest" palette.
+ * Deep green-tinted near-black surfaces (matches the ink #0b0f14 panels and
+ * brand green #1E5D4B) instead of the neutral shadcn defaults.
+ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  color-scheme: dark;
+  /* Scrollbar theme (dark) — muted green thumb on transparent track */
+  --scrollbar-thumb: #2c4a3f;
+  --scrollbar-thumb-hover: #368064;
+  --scrollbar-track: transparent;
+  --background: #0a100e;
+  --foreground: #e6efeb;
+  --card: #101815;
+  --card-foreground: #e6efeb;
+  --popover: #101815;
+  --popover-foreground: #e6efeb;
+  --primary: #57997f;
+  --primary-foreground: #06231b;
+  --secondary: #1a2420;
+  --secondary-foreground: #dbe7e2;
+  --muted: #17211d;
+  --muted-foreground: #8fa39b;
+  --accent: #1a2a24;
+  --accent-foreground: #cfe4dc;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --border: rgba(255, 255, 255, 0.09);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #368064;
+  --chart-1: #57997f;
+  --chart-2: #8ab9a5;
+  --chart-3: #b7d5c8;
+  --chart-4: #368064;
+  --chart-5: #123b30;
+  --sidebar: #101815;
+  --sidebar-foreground: #e6efeb;
+  --sidebar-primary: #57997f;
+  --sidebar-primary-foreground: #06231b;
+  --sidebar-accent: #1a2a24;
+  --sidebar-accent-foreground: #cfe4dc;
+  --sidebar-border: rgba(255, 255, 255, 0.09);
+  --sidebar-ring: #368064;
 }
 
 @layer base {
@@ -118,6 +133,49 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     Scrollbar theme — slim brand-green bar, rounded thumb with an
+     inset look. Firefox: scrollbar-width/color; WebKit: ::-webkit-*.
+     Kept inside @layer base so the compiler treats it as base CSS.
+     ───────────────────────────────────────────────────────────── */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Selection follows the brand in both themes */
+  ::selection {
+    background-color: rgba(54, 128, 100, 0.28);
+  }
+
+  .dark ::selection {
+    background-color: rgba(87, 153, 127, 0.4);
   }
 }
 

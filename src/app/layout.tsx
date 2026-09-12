@@ -2,7 +2,15 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from "@/config/site";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Navbar } from "@/components/landing/Navbar";
+import { Footer } from "@/components/landing/Footer";
+import {
+  APP_DESCRIPTION,
+  APP_NAME,
+  APP_TAGLINE,
+  SITE_URL,
+} from "@/config/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +23,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} — ${APP_TAGLINE}`,
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${APP_NAME} — ${APP_TAGLINE}`,
+    template: `%s — ${APP_NAME}`,
+  },
   description: APP_DESCRIPTION,
   keywords: [
     "expense tracker",
@@ -54,7 +66,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1E5D4B",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#1E5D4B" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a100e" },
+  ],
 };
 
 export default function RootLayout({
@@ -67,8 +82,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        {children}
-        <Toaster />
+        <ThemeProvider>
+          {/* Shared shell: navbar + page + footer on every route. The flex
+              column keeps the footer pinned to the bottom on short pages. */}
+          <div className="flex min-h-screen flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

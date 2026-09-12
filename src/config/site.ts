@@ -39,3 +39,19 @@ export const APP_NAME = "Kharcha";
 export const APP_TAGLINE = "Simple personal finance tracking";
 export const APP_DESCRIPTION =
   "Kharcha is a fast, offline-first expense tracker for Android. Record expenses and income, review every transaction, and understand where your money goes — no account, no cloud, completely private.";
+
+/**
+ * Developer / maintainer identity. Used on the Contact and About pages and in
+ * the footer — change it here once, it updates everywhere.
+ */
+export const DEVELOPER_NAME = "Mian Khizar";
+export const DEVELOPER_EMAIL = "miiankhiizar@gmail.com";
+export const DEVELOPER_PORTFOLIO_URL = "https://khizar.pro";
+export const DEVELOPER_PORTFOLIO_LABEL = "khizar.pro";
+
+/**
+ * Canonical site URL — used as metadataBase so OpenGraph/Twitter images and
+ * canonical URLs resolve to absolute addresses (silences the Next.js
+ * metadataBase warning). Update after connecting a custom domain.
+ */
+export const SITE_URL = "https://kharcha-web.pages.dev";

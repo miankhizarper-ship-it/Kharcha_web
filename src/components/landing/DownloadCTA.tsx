@@ -4,7 +4,7 @@ import { APP_NAME } from "@/config/site";
 
 export function DownloadCTA() {
   return (
-    <section id="download" aria-labelledby="download-heading" className="bg-white pb-20 sm:pb-28">
+    <section id="download" aria-labelledby="download-heading" className="pb-20 sm:pb-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <Reveal>
           <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-800 via-brand-900 to-ink px-6 py-16 text-center shadow-[0_40px_80px_-40px_rgba(10,36,29,0.7)] sm:px-12 sm:py-20">

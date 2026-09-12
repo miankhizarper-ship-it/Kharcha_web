@@ -20,32 +20,32 @@ export function WhyUse() {
     <section
       id="why-kharcha"
       aria-labelledby="why-heading"
-      className="relative overflow-hidden bg-brand-50/60"
+      className="relative overflow-hidden bg-brand-50/60 dark:bg-brand-950/20"
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-24 top-1/2 h-[420px] w-[420px] -translate-y-1/2 rounded-full bg-brand-100/70 blur-3xl"
+        className="pointer-events-none absolute -right-24 top-1/2 h-[420px] w-[420px] -translate-y-1/2 rounded-full bg-brand-100/70 blur-3xl dark:bg-brand-800/10"
       />
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-2 lg:gap-16">
         {/* Philosophy */}
         <div>
           <Reveal>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-600">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400">
               Why {`Kharcha`}
             </p>
             <h2
               id="why-heading"
-              className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-4xl"
+              className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-4xl"
             >
               Your money. Your records.
               <br />
-              <span className="text-brand-700">Your control.</span>
+              <span className="text-brand-700 dark:text-brand-300">Your control.</span>
             </h2>
           </Reveal>
 
           <Reveal delay={0.1}>
-            <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600">
+            <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600 dark:text-slate-400">
               <p>
                 Most finance apps try to be everything at once — investment dashboards,
                 social features, credit score pushes — until checking your own balance
