@@ -9,6 +9,9 @@
     "preview": "npx --yes serve out",
     "lint": "eslint ."
   },
+  "engines": {
+    "node": ">=20.9"
+  },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toast": "^1.2.14",
@@ -23,6 +26,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
