@@ -1,0 +1,10 @@
+# Netlify configuration — Kharcha landing page (static export).
+# Connect the repo in Netlify and this file does the rest; every push to
+# the production branch auto-deploys.
+
+[build]
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "20"

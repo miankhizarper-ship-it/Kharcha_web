@@ -48,11 +48,27 @@ src/
 public/assets/            app icon (used for logo, favicon, OpenGraph image)
 ```
 
-## Deploy
+## Deploy — Netlify-ready (and any static host)
 
-Any host that runs Next.js: Vercel / Netlify (import the repo, zero config),
-or a VPS — `npm run build && npm start`. The landing page is fully static
-prerendered; no server-side data is required at runtime.
+The site compiles to a fully static bundle in `out/` (pure HTML/CSS/JS —
+no server required anywhere).
+
+**Option 1 — connect the repo (recommended):**
+Push this project to GitHub/GitLab/Bitbucket, then in Netlify:
+"Add new site → Import an existing project". `netlify.toml` already
+defines everything (build `npm run build`, publish `out`, Node 20) —
+no manual settings. Every push to the production branch auto-deploys.
+
+**Option 2 — drag & drop:**
+Run `npm run build`, then drop the generated `out/` folder onto
+<https://app.netlify.com/drop>. Done.
+
+**Local production preview:** `npm run preview` (serves the `out/` folder
+at http://localhost:3000). Note: with static export there is no
+`next start` server — `out/` is the entire site.
+
+Other hosts: Cloudflare Pages / Vercel / GitHub Pages — set build command
+`npm run build` and publish directory `out` (or upload `out/`).
 
 ## Branding
 
