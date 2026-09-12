@@ -4,5 +4,7 @@ out/
 *.log
 .DS_Store
 .env*
+.dev.vars
+.wrangler/
 tsconfig.tsbuildinfo
 next-env.d.ts

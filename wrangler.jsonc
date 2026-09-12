@@ -1,0 +1,16 @@
+// Cloudflare Workers config — Kharcha landing page (static assets only).
+// The site is a fully static Next.js export (out/), so it is hosted as
+// pure CDN assets. Do NOT enable the OpenNext/Next.js framework preset —
+// no server is needed.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kharcha-web",
+  "compatibility_date": "2026-09-11",
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

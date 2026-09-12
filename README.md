@@ -63,6 +63,12 @@ no manual settings. Every push to the production branch auto-deploys.
 Run `npm run build`, then drop the generated `out/` folder onto
 <https://app.netlify.com/drop>. Done.
 
+**Cloudflare (Workers Builds):**
+`wrangler.jsonc` is preconfigured to publish the static `out/` folder as
+CDN assets. In the dashboard set: build command `npm run build`, deploy
+command `npx wrangler deploy`. Do NOT pick the OpenNext / Next.js
+framework preset — this site is 100% static, no server needed.
+
 **Local production preview:** `npm run preview` (serves the `out/` folder
 at http://localhost:3000). Note: with static export there is no
 `next start` server — `out/` is the entire site.
