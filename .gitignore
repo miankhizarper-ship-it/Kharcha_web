@@ -1,9 +1,11 @@
 node_modules/
 .next/
 out/
+.open-next/
 *.log
 .DS_Store
-.env*
+.env
+.env*.local
 .dev.vars
 .wrangler/
 tsconfig.tsbuildinfo

@@ -3,6 +3,7 @@
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { trackAnalyticsEvent } from "@/components/analytics/track";
 import { APK_DIRECT_DOWNLOAD_URL, APK_URL_CONFIGURED } from "@/config/site";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +49,12 @@ export function DownloadButton({
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Download the Kharcha Android app (APK)"
+          onClick={() =>
+            // Fire-and-forget: queues a beacon and returns synchronously —
+            // the download never waits for analytics, and an analytics
+            // failure is silently ignored.
+            trackAnalyticsEvent("download_click", { label })
+          }
         >
           <Download className="size-4" aria-hidden="true" />
           {label}

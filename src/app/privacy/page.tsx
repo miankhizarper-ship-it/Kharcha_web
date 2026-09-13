@@ -87,9 +87,9 @@ export default function PrivacyPage() {
 
       <ArticleH2>5. This website and the APK download</ArticleH2>
       <ArticleP>
-        The Kharcha landing page is a static website. It does not use tracking
-        cookies, fingerprinting, or analytics scripts, and it does not create
-        user profiles. The Android installation file (APK) is hosted on Google
+        The Kharcha landing page does not use tracking cookies, advertising
+        networks, or fingerprinting, and it does not build advertising
+        profiles. The Android installation file (APK) is hosted on Google
         Drive so it can be downloaded reliably. When you download the APK, your
         connection is to Google&apos;s infrastructure, and Google&apos;s own terms and
         privacy policy apply to that interaction — Kharcha receives nothing
@@ -98,7 +98,44 @@ export default function PrivacyPage() {
         policies.
       </ArticleP>
 
-      <ArticleH2>6. Children&apos;s privacy</ArticleH2>
+      <ArticleH2>6. Anonymous website analytics</ArticleH2>
+      <ArticleP>
+        To understand how the landing page is used — and whether the download
+        button is actually working for people — this website collects a small
+        set of <strong>fully anonymous</strong> usage statistics. What that
+        means in practice:
+      </ArticleP>
+      <ArticleUL>
+        <ArticleLI>
+          pages viewed and buttons clicked (for example, the APK download
+          button), with timestamps;
+        </ArticleLI>
+        <ArticleLI>
+          coarse device class (mobile / tablet / desktop), browser family and
+          operating system family, derived from the standard user-agent string
+          your browser already sends;
+        </ArticleLI>
+        <ArticleLI>
+          the website that referred you, reduced to a bare domain (for example
+          &ldquo;google.com&rdquo;) — never the full URL;
+        </ArticleLI>
+        <ArticleLI>
+          an anonymous random identifier kept in your browser&apos;s local storage
+          so repeat visits can be counted without identifying you. Clearing
+          your browser data gives you a fresh identifier instantly.
+        </ArticleLI>
+      </ArticleUL>
+      <ArticleP>
+        What is <strong>never</strong> collected or stored: your name, email
+        address, account details (the site has none), exact IP addresses (raw
+        IPs are never persisted — they are only used momentarily, in hashed
+        form, to rate-limit abuse), precise location, or anything you type.
+        Browsers that send a &ldquo;Do Not Track&rdquo; signal are not measured at all.
+        These statistics exist solely to keep the site useful and the download
+        link healthy — they are never sold or shared.
+      </ArticleP>
+
+      <ArticleH2>7. Children&apos;s privacy</ArticleH2>
       <ArticleP>
         Kharcha does not knowingly collect any personal information from anyone,
         including children under 13 — the app has no mechanism to do so, since
@@ -106,7 +143,7 @@ export default function PrivacyPage() {
         question about this, contact us using the address below.
       </ArticleP>
 
-      <ArticleH2>7. Security</ArticleH2>
+      <ArticleH2>8. Security</ArticleH2>
       <ArticleP>
         Your data is protected primarily by not existing anywhere outside your
         device. We recommend using Android&apos;s built-in device encryption (on by
@@ -116,7 +153,7 @@ export default function PrivacyPage() {
         same care as any financial document.
       </ArticleP>
 
-      <ArticleH2>8. Changes to this policy</ArticleH2>
+      <ArticleH2>9. Changes to this policy</ArticleH2>
       <ArticleP>
         If the app&apos;s data practices ever change — for example, if an optional
         sync feature were ever introduced — this policy will be updated on this
@@ -125,7 +162,7 @@ export default function PrivacyPage() {
         material changes are not expected.
       </ArticleP>
 
-      <ArticleH2>9. Contact</ArticleH2>
+      <ArticleH2>10. Contact</ArticleH2>
       <ArticleP>
         Questions about this policy, or a privacy concern to raise? Write to{" "}
         <a

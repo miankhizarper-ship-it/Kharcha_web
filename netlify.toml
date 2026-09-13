@@ -1,10 +1,8 @@
-# Netlify configuration — Kharcha landing page (static export).
-# Connect the repo in Netlify and this file does the rest; every push to
-# the production branch auto-deploys.
+# Netlify configuration — Kharcha landing page (Next.js server mode).
+# The Next runtime is auto-installed by Netlify when it detects Next.js.
 
 [build]
   command = "npm run build"
-  publish = "out"
 
 [build.environment]
   NODE_VERSION = "20"

@@ -1,0 +1,7 @@
+# Copy to .dev.vars for local Worker-mode preview (npm run preview).
+# In production these are set in the Cloudflare dashboard instead.
+MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DATABASE=kharcha_analytics
+ANALYTICS_ADMIN_USERNAME=admin
+ANALYTICS_ADMIN_PASSWORD=pick-a-long-random-password
+ANALYTICS_SESSION_SECRET=pick-another-long-random-string
