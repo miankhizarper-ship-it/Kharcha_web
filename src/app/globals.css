@@ -128,6 +128,13 @@
 }
 
 @layer base {
+  /* Non-static scroll element — required by framer-motion useScroll(target)
+     (hero 3D rig) dev-mode container check. Kept inside @layer base: Turbopack
+     dev drops top-level additions to the html rule (works in both via layer). */
+  html {
+    position: relative;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }

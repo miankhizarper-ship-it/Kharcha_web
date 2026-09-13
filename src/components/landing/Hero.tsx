@@ -1,14 +1,20 @@
+"use client";
+
+import { useRef } from "react";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { DownloadButton } from "@/components/landing/DownloadButton";
-import { PhoneMockup } from "@/components/landing/PhoneMockup";
+import { HeroPhone3D } from "@/components/landing/HeroPhone3D";
 import { Reveal } from "@/components/landing/Reveal";
 import { APP_NAME } from "@/config/site";
 
 const TRUST_POINTS = ["No account needed", "Works fully offline", "Free to use"];
 
 export function Hero() {
+  // The 3D phone measures scroll progress against THIS section (see HeroPhone3D).
+  const sectionRef = useRef<HTMLElement>(null);
+
   return (
-    <section id="top" className="relative overflow-hidden">
+    <section id="top" ref={sectionRef} className="relative overflow-hidden">
       {/* Decorative background — brand-tinted blobs, never interactive */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-32 right-[-10%] h-[480px] w-[480px] rounded-full bg-gradient-to-br from-brand-100 via-brand-50 to-transparent opacity-80 blur-2xl dark:from-brand-900/50 dark:via-brand-950/40 dark:to-transparent" />
@@ -71,35 +77,9 @@ export function Hero() {
           </Reveal>
         </div>
 
-        {/* Phone visual */}
+        {/* Phone visual — layered 3D mockup with scroll-driven drift */}
         <Reveal delay={0.2} y={36} className="relative mx-auto lg:mx-0 lg:justify-self-center">
-          <div className="relative flex justify-center">
-            {/* Glow behind phone */}
-            <div
-              aria-hidden="true"
-              className="absolute left-1/2 top-1/2 -z-10 h-[115%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-[3rem] bg-gradient-to-br from-brand-200/70 via-brand-100/50 to-transparent blur-xl dark:from-brand-800/40 dark:via-brand-900/30 dark:to-transparent"
-            />
-
-            <PhoneMockup variant="light" className="rotate-[1.5deg]" />
-
-            {/* Floating income chip */}
-            <div className="animate-float absolute -right-3 top-16 hidden rounded-2xl border border-slate-200/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-slate-900/10 backdrop-blur sm:block lg:-right-8 dark:border-white/10 dark:bg-white/10 dark:shadow-black/40">
-              <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Salary received</p>
-              <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">+$2,500.00</p>
-            </div>
-
-            {/* Floating budget chip */}
-            <div className="animate-float-delayed absolute -left-4 bottom-24 hidden w-44 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-xl shadow-slate-900/10 backdrop-blur sm:block lg:-left-10 dark:border-white/10 dark:bg-white/10 dark:shadow-black/40">
-              <div className="flex items-center justify-between text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                <span>Food &amp; Dining</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-200">68%</span>
-              </div>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
-                <div className="h-full w-[68%] rounded-full bg-gradient-to-r from-brand-500 to-brand-700" />
-              </div>
-              <p className="mt-1.5 text-[9px] text-slate-400 dark:text-slate-500">Monthly budget on track</p>
-            </div>
-          </div>
+          <HeroPhone3D sectionRef={sectionRef} />
         </Reveal>
       </div>
     </section>

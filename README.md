@@ -55,7 +55,8 @@ src/
                           not-found (404), global styles + dark palette
   components/
     theme-provider.tsx    light/dark provider (next-themes)
-    landing/              Navbar (+ theme toggle), Hero, PhoneMockup,
+    landing/              Navbar (+ theme toggle), Hero, HeroPhone3D (3D
+                          scroll-driven hero phone), PhoneMockup,
                           AppPreview, Features, WhyUse, HowItWorks,
                           DownloadCTA, Footer, DownloadButton (the only
                           download action), Reveal, PageShell (inner-page
