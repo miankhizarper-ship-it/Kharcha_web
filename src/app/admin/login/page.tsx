@@ -23,6 +23,11 @@ export default async function AdminLoginPage() {
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">MONGODB_URI</code>) in your
             environment or Cloudflare Worker settings, then redeploy.
           </p>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Already added them? Open{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">/api/admin/env-check</code>{" "}
+            to see which bindings this deployment actually receives.
+          </p>
         </div>
       </div>
     );

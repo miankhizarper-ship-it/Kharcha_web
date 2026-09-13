@@ -1,4 +1,3 @@
-cat > "$STAGE/README.md" << 'EOF'
 # Kharcha — Landing Page
 
 Marketing site for the **Kharcha** offline-first expense tracker Android app,
@@ -139,7 +138,9 @@ Option B — dashboard Git integration (Workers Builds):
 > separately.
 
 **3. Set the variables** in Cloudflare Dashboard → Workers → kharcha-web →
-Settings → **Variables and Secrets** (type Secret for anything sensitive):
+Settings → **Variables and Secrets** → make sure the **Production** tab is
+selected (workers.dev traffic serves Production, not Preview). Use type
+Secret for anything sensitive:
 
 | Name | Example |
 | --- | --- |
@@ -149,10 +150,13 @@ Settings → **Variables and Secrets** (type Secret for anything sensitive):
 | `ANALYTICS_ADMIN_PASSWORD` | a long random password |
 | `ANALYTICS_SESSION_SECRET` | a long random string |
 
-**4. Redeploy** (so the new variables are picked up), then verify:
+**4. Redeploy** (bindings only reach deployments created AFTER they are
+saved), then verify:
 
 ```bash
 open https://<your-worker>.workers.dev/
+# Diagnostic: which bindings does the RUNNING deployment actually see?
+open https://<your-worker>.workers.dev/api/admin/env-check
 curl -s -o /dev/null -w "%{http_code}\n" \
   -X POST https://<your-worker>.workers.dev/api/analytics \
   -H "Content-Type: application/json" \
@@ -160,6 +164,12 @@ curl -s -o /dev/null -w "%{http_code}\n" \
   -d '{"type":"pageview","path":"/","visitorId":"verify-test-01","sessionId":"verify-test-01"}'
 # → 204, and the visit shows up in /admin/analytics
 ```
+
+If `/api/admin/env-check` reports a binding as `missing` although the
+dashboard shows it: (a) redeploy — the current deployment predates the
+secret; (b) confirm the secret is on THIS worker (name must match the
+workers.dev subdomain); (c) confirm it is on the **Production** tab,
+not Preview.
 
 Local Worker-mode preview (uses `.dev.vars`): `cp .dev.vars.example .dev.vars`
 then `npm run preview`.
@@ -197,7 +207,7 @@ src/
     admin/login/          dashboard sign-in
     admin/analytics/      private dashboard (KPIs, traffic, breakdowns)
     api/analytics/        POST ingestion endpoint
-    api/admin/            login / logout endpoints
+    api/admin/            login / logout / env-check (diagnostic) endpoints
     globals.css           light/dark palettes, scrollbar theme
   components/
     theme-provider.tsx    light/dark provider (next-themes)

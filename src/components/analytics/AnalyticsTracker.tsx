@@ -12,15 +12,19 @@ import { getVisitorId, getSessionId, send, trackingAllowed } from "./track";
  * - Never fires on React re-renders: the effect depends only on the pathname,
  *   and a module-level guard collapses StrictMode / double-effect fires
  *   (same path within 2s → ignored).
- * - Renders nothing and does no work at all when analytics is not configured
- *   server-side (MONGODB_URI missing) or the user sends Do Not Track.
+ * - ALWAYS mounted: whether tracking is enabled is decided by the SERVER
+ *   per request (/api/analytics returns 204 when MONGODB_URI is absent).
+ *   Gating via a server prop was removed because static prerendering baked
+ *   the build-time value (false) into the HTML, which would permanently
+ *   disable tracking even after bindings were fixed.
+ * - Does no work when the user sends Do Not Track.
  */
-export function AnalyticsTracker({ enabled }: { enabled: boolean }) {
+export function AnalyticsTracker() {
   const pathname = usePathname();
   const lastFire = useRef<{ path: string; at: number }>({ path: "", at: 0 });
 
   useEffect(() => {
-    if (!enabled || !trackingAllowed()) return;
+    if (!trackingAllowed()) return;
 
     const now = Date.now();
     if (lastFire.current.path === pathname && now - lastFire.current.at < 2_000) {
@@ -39,7 +43,7 @@ export function AnalyticsTracker({ enabled }: { enabled: boolean }) {
           ? `${screen.width}x${screen.height}`
           : undefined,
     });
-  }, [enabled, pathname]);
+  }, [pathname]);
 
   return null;
 }

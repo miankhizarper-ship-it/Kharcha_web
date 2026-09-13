@@ -1,4 +1,5 @@
 import type { ObjectId } from "mongodb";
+import { getAnalyticsBinding } from "./env";
 import { COLLECTIONS, getAnalyticsDb } from "./mongo";
 import { referrerHost, sanitizePath, type IngestPayload } from "./schema";
 import { parseUserAgent, type UaInfo } from "./ua";
@@ -58,7 +59,7 @@ let indexesReady: Promise<void> | null = null;
 export function ensureIndexes(): Promise<void> {
   indexesReady ??= (async () => {
     const db = await getAnalyticsDb();
-    const retentionDays = Number(process.env.ANALYTICS_RETENTION_DAYS?.trim());
+    const retentionDays = Number(getAnalyticsBinding("ANALYTICS_RETENTION_DAYS"));
 
     const events = db.collection(COLLECTIONS.events);
     const visits = db.collection(COLLECTIONS.visits);

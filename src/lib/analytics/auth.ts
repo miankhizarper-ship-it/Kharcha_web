@@ -9,7 +9,13 @@
  *   Workers (nodejs_compat).
  * - All comparisons are constant-time over SHA-256 digests (no length or
  *   timing leaks).
+ *
+ * Credentials are resolved via lib/env (live Cloudflare bindings first,
+ * process.env fallback) so the dashboard works no matter which source the
+ * deployment exposes.
  */
+
+import { getAnalyticsBinding } from "./env";
 
 const globalStore = globalThis as typeof globalThis & {
   __kharchaSessionKeyBytes?: Uint8Array;
@@ -58,7 +64,7 @@ async function hmacHex(keyBytes: Uint8Array, message: string): Promise<string> {
 
 async function getSessionKeyBytes(): Promise<Uint8Array> {
   globalStore.__kharchaSessionKeyBytes ??= await (async () => {
-    const explicit = process.env.ANALYTICS_SESSION_SECRET?.trim();
+    const explicit = getAnalyticsBinding("ANALYTICS_SESSION_SECRET");
     const base =
       explicit ||
       `${adminUsername()}:${adminPassword()}`; // derived fallback when no explicit secret
@@ -72,11 +78,11 @@ async function getSessionKeyBytes(): Promise<Uint8Array> {
 }
 
 function adminUsername(): string {
-  return process.env.ANALYTICS_ADMIN_USERNAME?.trim() ?? "";
+  return getAnalyticsBinding("ANALYTICS_ADMIN_USERNAME");
 }
 
 function adminPassword(): string {
-  return process.env.ANALYTICS_ADMIN_PASSWORD?.trim() ?? "";
+  return getAnalyticsBinding("ANALYTICS_ADMIN_PASSWORD");
 }
 
 /** True when dashboard credentials are configured — safe to expose. */

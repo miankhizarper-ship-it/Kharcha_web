@@ -7,7 +7,6 @@ import { AnalyticsTracker } from "@/components/analytics/AnalyticsTracker";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import { SiteChrome } from "@/components/landing/SiteChrome";
-import { isAnalyticsConfigured } from "@/lib/analytics/mongo";
 import {
   APP_DESCRIPTION,
   APP_NAME,
@@ -103,9 +102,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         <ThemeProvider>
-          {/* Anonymous page-view tracking — no-ops entirely when
-              MONGODB_URI is not configured on the server. */}
-          <AnalyticsTracker enabled={isAnalyticsConfigured()} />
+          {/* Anonymous page-view tracking. Always mounted — the ingest
+              endpoint (/api/analytics) no-ops server-side when MONGODB_URI
+              is not configured, so nothing is ever recorded (and nothing
+              is baked into static HTML at build time). */}
+          <AnalyticsTracker />
 
           {/* Shared shell: navbar + page + footer on every public route. The
               flex column keeps the footer pinned to the bottom on short

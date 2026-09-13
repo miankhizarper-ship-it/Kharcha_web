@@ -1,4 +1,5 @@
 import { MongoClient } from "mongodb";
+import { getAnalyticsBinding } from "./env";
 
 /**
  * Analytics MongoDB connection — server-only module.
@@ -16,15 +17,29 @@ import { MongoClient } from "mongodb";
  * best-effort feature and must never break the landing page.
  */
 
-const uri = process.env.MONGODB_URI?.trim() ?? "";
-const dbName = process.env.MONGODB_DATABASE?.trim() || "kharcha_analytics";
+/**
+ * Binding values are resolved LAZILY (per call) instead of at module scope —
+ * module evaluation happens before request context exists, and a top-level
+ * read would freeze whatever the worker booted with.
+ */
+function mongoUri(): string {
+  return getAnalyticsBinding("MONGODB_URI");
+}
 
-/** Fail fast (3s) so a down database never hangs a request for long. */
+function mongoDbName(): string {
+  return getAnalyticsBinding("MONGODB_DATABASE") || "kharcha_analytics";
+}
+
+/** Generous timeouts (10s): workerd socket establishment can be slow under
+ * CPU contention, and Atlas cold starts occasionally exceed 3s — a tight
+ * window killed retried connections before the driver could re-attempt.
+ * Ingest is fire-and-forget (sendBeacon) and every failure is caught by the
+ * route (graceful 503), so a slow database never affects the visitor. */
 const CLIENT_OPTIONS = {
   maxPoolSize: 5,
-  serverSelectionTimeoutMS: 3_000,
-  connectTimeoutMS: 3_000,
-  socketTimeoutMS: 5_000,
+  serverSelectionTimeoutMS: 10_000,
+  connectTimeoutMS: 10_000,
+  socketTimeoutMS: 10_000,
 } as const;
 
 const globalStore = globalThis as typeof globalThis & {
@@ -33,13 +48,14 @@ const globalStore = globalThis as typeof globalThis & {
 
 /** True when a MongoDB URI is configured — safe to expose to the client. */
 export function isAnalyticsConfigured(): boolean {
-  return uri.length > 0;
+  return mongoUri().length > 0;
 }
 
 /** Cached Mongo client promise. Throws when MONGODB_URI is not set.
  * A failed connection attempt evicts itself so the NEXT request retries
  * (a down database must heal automatically once it comes back). */
 export function getMongoClient(): Promise<MongoClient> {
+  const uri = mongoUri();
   if (!uri) {
     throw new Error("MONGODB_URI is not configured");
   }
@@ -53,7 +69,7 @@ export function getMongoClient(): Promise<MongoClient> {
 }
 
 export function getAnalyticsDb() {
-  return getMongoClient().then((client) => client.db(dbName));
+  return getMongoClient().then((client) => client.db(mongoDbName()));
 }
 
 export const COLLECTIONS = {

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { getAnalyticsBinding } from "./env";
 
 /**
  * Shared server-only helpers for API routes.
@@ -16,6 +17,6 @@ export function anonymizeIp(request: Request): string {
     request.headers.get("x-real-ip") ??
     request.headers.get("x-forwarded-for")?.split(",")[0] ??
     "unknown";
-  const salt = `${process.env.ANALYTICS_IP_SALT?.trim() || process.env.ANALYTICS_SESSION_SECRET?.trim() || "kharcha"}:${new Date().toISOString().slice(0, 10)}`;
+  const salt = `${getAnalyticsBinding("ANALYTICS_IP_SALT") || getAnalyticsBinding("ANALYTICS_SESSION_SECRET") || "kharcha"}:${new Date().toISOString().slice(0, 10)}`;
   return createHash("sha256").update(`${salt}:${raw}`).digest("hex");
 }
