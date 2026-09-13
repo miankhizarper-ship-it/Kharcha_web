@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useLatestApkUrl } from "@/hooks/use-latest-apk-url";
 import { trackAnalyticsEvent } from "@/components/analytics/track";
-import { APK_DIRECT_DOWNLOAD_URL, APK_URL_CONFIGURED } from "@/config/site";
+import { APK_DIRECT_DOWNLOAD_URL } from "@/config/site";
 import { cn } from "@/lib/utils";
 
 type DownloadButtonProps = {
@@ -20,20 +20,15 @@ type DownloadButtonProps = {
  *
  * The href follows the operator-controlled release at RUNTIME: the
  * `useLatestApkUrl` hook reads GET /api/app-version (fed by the APP_LATEST_*
- * Cloudflare variables, MongoDB `app_releases` as fallback) and overrides the
- * build-time link from `src/config/site.ts`. Changing the APK link is now a
- * variable edit in the Cloudflare dashboard — no redeploy needed. Until (and
- * unless) the endpoint answers, the build-time `APK_DIRECT_DOWNLOAD_URL`
- * keeps the button fully functional; any fetch failure is silent.
+ * Cloudflare variables, MongoDB `app_releases` as fallback) — there is no
+ * hardcoded download link anymore. Until (and unless) the endpoint answers,
+ * the button renders in its "not configured" state (explaining toast) rather
+ * than ever linking to an outdated APK; any fetch failure is silent.
  *
- * For Google Drive links the direct-download endpoint (or the server-side
- * normalized URL) serves the APK as an attachment — the browser starts the
- * download immediately instead of opening a preview page. `target="_blank"`
- * is kept as a graceful fallback: if a host ever returns HTML instead of the
- * file, the landing page stays open.
- * - When a URL is available → renders a real download link.
- * - When no URL exists at all → renders the same button and explains via
- *   toast that the URL still needs to be filled in (never a fake link).
+ * The served URL is normalized server-side (Drive share pages → direct
+ * endpoint, GitHub blob → raw host). `target="_blank"` is kept as a graceful
+ * fallback: if a host ever returns HTML instead of the file, the landing
+ * page stays open.
  */
 export function DownloadButton({
   size = "default",
@@ -45,7 +40,7 @@ export function DownloadButton({
   const liveApkUrl = useLatestApkUrl();
   const apkUrl = liveApkUrl ?? APK_DIRECT_DOWNLOAD_URL;
 
-  if (apkUrl.trim().length > 0 && APK_URL_CONFIGURED) {
+  if (apkUrl.trim().length > 0) {
     return (
       <Button
         size={size}
@@ -82,7 +77,7 @@ export function DownloadButton({
         toast({
           title: "Download link coming soon",
           description:
-            "The APK is hosted externally. Set the APP_LATEST_APK_URL variable in the Cloudflare dashboard (or APK_DOWNLOAD_URL in src/config/site.ts) to enable downloads.",
+            "The APK link is managed in the Cloudflare dashboard (APP_LATEST_APK_URL variable). Once set, downloads start here automatically.",
         })
       }
     >

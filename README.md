@@ -245,20 +245,26 @@ Full release workflow (version bumps, signing, testing): see the app repo's
 
 ## Change the APK download link
 
-There are two layers, and the variable wins once this build is deployed:
+The link lives in ONE place: the `APP_LATEST_APK_URL` variable in the
+Cloudflare dashboard (Worker → Settings → Variables and Secrets). Once this
+build is deployed there is **no hardcoded download link anywhere**:
 
-1. **Runtime override (no redeploy)** — set the `APP_LATEST_APK_URL`
-   variable in the Cloudflare dashboard (Worker → Settings → Variables and
-   Secrets). Every website download button reads `GET /api/app-version` on
-   page load and follows that link; the in-app updater uses the same value.
-   Drive share pages and GitHub `blob` links are auto-converted to direct
-   download URLs (`src/lib/apk-url.ts`), so pasting a share link still works.
-   With `APP_LATEST_VERSION` / `APP_LATEST_VERSION_CODE` set alongside, the
-   same edit publishes a new release everywhere at once.
-2. **Build-time fallback** — `src/config/site.ts` `APK_DOWNLOAD_URL`. Used
-   whenever the API cannot answer (endpoint down / nothing configured).
-   For Google Drive share links the direct-download URL is derived
-   automatically; any other host is used as-is.
+- Every website download button reads `GET /api/app-version` on page load and
+  follows that link; the mobile app's update checker uses the same value —
+  one variable edit publishes everywhere, no redeploy.
+- Drive share pages and GitHub `blob` links are auto-converted to direct
+  download URLs (`src/lib/apk-url.ts`), so pasting a share link still works.
+- With `APP_LATEST_VERSION` / `APP_LATEST_VERSION_CODE` set alongside, the
+  same edit also publishes the in-app update (version dialog) at once.
+- `src/config/site.ts` `APK_DOWNLOAD_URL` is an intentionally EMPTY
+  build-time fallback — fill it only if you ever want a baked-in link back;
+  while empty, an unreachable/unset variable shows the "link coming soon"
+  toast instead of serving an outdated APK.
+
+GitHub hosting tip: use a **public** repo (private repos 404 for visitors and
+the app) and prefer a Releases asset link
+(`github.com/<u>/<r>/releases/download/<tag>/<file>`); committed files are
+capped at 100 MiB.
 
 Developer identity (name, email, portfolio) is configured in
 `src/config/site.ts` (`DEVELOPER_*` constants) and shown on /about, /contact
@@ -299,7 +305,8 @@ src/
     rate-limit.ts         in-memory fixed-window limiter
     auth.ts               HMAC-signed admin session (Web Crypto)
     server-utils.ts       daily-rotating IP hash (never persisted)
-  config/site.ts          APK_DOWNLOAD_URL (build-time fallback), developer
+  config/site.ts          APP_DOWNLOAD_URL (intentionally empty — the live
+                          link is the APP_LATEST_APK_URL variable), developer
                           identity, SITE_URL — single source of truth
   lib/apk-url.ts          APK link normalizer (Drive share → direct,
                           GitHub blob/raw → raw.githubusercontent)

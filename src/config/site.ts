@@ -2,37 +2,32 @@
  * ─────────────────────────────────────────────────────────────────────────────
  *  SITE CONFIG — SINGLE SOURCE OF TRUTH
  * ─────────────────────────────────────────────────────────────────────────────
- *  APK download link (hosted on Google Drive).
+ *  APK download link — RUNTIME-DRIVEN, not baked in.
  *
- *  Every download button on the page (Navbar, Hero, Download section, Footer)
- *  reads THIS one value — you never need to touch a component.
- *  To swap the file later (new release), just replace the URL below.
+ *  The live link is the `APP_LATEST_APK_URL` variable in the Cloudflare
+ *  dashboard (Worker → Settings → Variables and Secrets). Every download
+ *  button fetches it from GET /api/app-version on page load, and the mobile
+ *  app's update checker uses the same value — one edit publishes everywhere,
+ *  no redeploy. Known page-shaped links (Drive share pages, GitHub blob/raw)
+ *  are auto-converted to direct download URLs server-side.
+ *
+ *  This constant is the BUILD-TIME FALLBACK for the rare case the endpoint
+ *  cannot answer. It is intentionally EMPTY: there is no hardcoded fallback
+ *  download anymore — when the variable is unset/unreachable the buttons
+ *  show the "link coming soon" toast instead of serving an outdated APK.
  * ─────────────────────────────────────────────────────────────────────────────
  */
-export const APK_DOWNLOAD_URL =
-  "https://drive.google.com/file/d/1g80WLdKRir0YOSvAijosWRLERDeSh-GQ/view?usp=sharing";
+import { normalizeApkUrl } from "@/lib/apk-url";
 
-/** True only once a real APK URL has been filled in above. */
-export const APK_URL_CONFIGURED = APK_DOWNLOAD_URL.trim().length > 0;
+export const APK_DOWNLOAD_URL = "";
 
 /**
- * Browsers ignore the `download` attribute for cross-origin links, so pointing
- * at the share URL above would only open Drive's preview page. Google Drive
- * exposes a direct-download endpoint that serves the file with
- * `Content-Disposition: attachment` — the download starts immediately instead
- * of showing the Drive page. `confirm=t` also skips Drive's "can't scan this
- * file for viruses" interstitial for large files (APKs are usually large).
- *
- * Derived here so the share link stays the single source of truth. If the URL
- * above is ever swapped for a non-Drive host (e.g. Cloudinary), it is returned
- * unchanged and used directly.
+ * Direct-download derivation of the build-time fallback via the one shared
+ * normalizer (Drive share → direct endpoint, GitHub blob/raw → raw host).
+ * Empty fallback in, empty fallback out. The runtime link from
+ * /api/app-version is already normalized server-side and never passes here.
  */
-export const APK_DIRECT_DOWNLOAD_URL = (() => {
-  const driveFile = APK_DOWNLOAD_URL.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  return driveFile
-    ? `https://drive.usercontent.google.com/download?id=${driveFile[1]}&export=download&confirm=t`
-    : APK_DOWNLOAD_URL;
-})();
+export const APK_DIRECT_DOWNLOAD_URL = normalizeApkUrl(APK_DOWNLOAD_URL);
 
 /** Product identity used across the landing page. */
 export const APP_NAME = "Kharcha";
