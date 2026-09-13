@@ -82,6 +82,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/*
+          Turbopack's server build rewrites function declarations with
+          `__name(...)` keep-name calls, and next-themes serialises its
+          bootstrap function via Function.prototype.toString() — so those
+          calls end up inside the inline theme <script> that the BROWSER
+          executes, where no bundler runtime defines `__name`. Register a
+          no-op fallback before anything else can execute (this must stay
+          the first script in <head>).
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'if(typeof globalThis.__name==="undefined"){globalThis.__name=function(t){return t;};}',
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
