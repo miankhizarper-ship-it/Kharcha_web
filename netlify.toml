@@ -1,8 +1,10 @@
 # Netlify configuration — Kharcha landing page (Next.js server mode).
 # The Next runtime is auto-installed by Netlify when it detects Next.js.
+# Plain next build: package.json `build` is the Cloudflare Worker build and
+# must not run on Netlify.
 
 [build]
-  command = "npm run build"
+  command = "npx next build"
 
 [build.environment]
   NODE_VERSION = "20"

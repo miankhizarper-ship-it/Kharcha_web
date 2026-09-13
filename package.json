@@ -5,10 +5,10 @@
   "description": "Marketing landing page for the Kharcha offline-first expense tracker Android app",
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build",
-    "build:cf": "opennextjs-cloudflare build",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "build": "NEXT_PRIVATE_STANDALONE=true NEXT_PRIVATE_OUTPUT_TRACE_ROOT=$PWD next build && opennextjs-cloudflare build --skipNextBuild",
+    "build:next": "next build",
+    "preview": "npm run build && opennextjs-cloudflare preview",
+    "deploy": "npm run build && opennextjs-cloudflare deploy",
     "lint": "eslint ."
   },
   "engines": {

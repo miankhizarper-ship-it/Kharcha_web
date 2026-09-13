@@ -75,10 +75,11 @@ npm run dev                 # http://localhost:3000
 Open the site, click around, then sign in at <http://localhost:3000/admin/login>
 and open **/admin/analytics** to watch live data.
 
-Production build:
+Production builds:
 
 ```bash
-npm run build               # Next.js server build
+npm run build               # Cloudflare Worker bundle (.next + .open-next/)
+npm run build:next          # plain Next.js build (other hosts)
 ```
 
 ## Light / dark theme
@@ -116,16 +117,26 @@ npx opennextjs-cloudflare deploy
 (Wrangler prompts you to log in on first use; `npm run deploy` does both.)
 
 Option B — dashboard Git integration (Workers Builds):
-- **Build command:** `npx opennextjs-cloudflare build`  ← NOT `npm run build`
+- **Build command:** `npm run build` (default) — this repo's `build` script
+  runs `next build` and then the OpenNext Worker bundling, so `.open-next/`
+  is produced. `npx opennextjs-cloudflare build` works too.
 - **Deploy command:** `npx wrangler deploy` (auto-detects OpenNext; or
   `npx opennextjs-cloudflare deploy` — both are equivalent)
 
-> ⚠️ **Why not `npm run build`?** It only runs `next build`, which produces
-> `.next/` but never the `.open-next/` Worker bundle. The deploy step then
-> fails with *"Could not find compiled Open Next config, did you run the
-> build command?"*. `npx opennextjs-cloudflare build` runs `next build`
-> itself and then compiles the Worker — that is the ONLY build command the
-> Cloudflare dashboard needs. (`npm run build:cf` is a shortcut for it.)
+> ⚠️ **The one thing the build command must do is produce `.open-next/`.**
+> A build command that only runs plain `next build` leaves `.open-next/`
+> missing and the deploy step fails with *"Could not find compiled Open
+> Next config, did you run the build command?"*. With THIS package.json,
+> `npm run build` builds Next in standalone mode (that is what the
+> OpenNext bundler consumes) and then compiles the Worker, so the
+> dashboard default already produces the Worker bundle. (`build:next` is
+> the plain Next build for other hosts, e.g. Netlify.) Two things NOT to
+> do: never point the `build` script DIRECTLY at `opennextjs-cloudflare
+> build` (it invokes `npm run build` internally → infinite recursion), and
+> never drop the `NEXT_PRIVATE_STANDALONE=true` prefix (the bundler needs
+> `.next/standalone/`). The env prefix needs a POSIX shell — fine on
+> Cloudflare/Netlify/Linux/macOS; on Windows use WSL or run the two steps
+> separately.
 
 **3. Set the variables** in Cloudflare Dashboard → Workers → kharcha-web →
 Settings → **Variables and Secrets** (type Secret for anything sensitive):
