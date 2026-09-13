@@ -99,6 +99,11 @@ functions in one Worker; MongoDB is reached at runtime with the
 - Create a free cluster (M0), a database user, and note the connection string
   (`mongodb+srv://user:pass@cluster0.xxx.mongodb.net/...`).
 - Network Access → add **0.0.0.0/0** (Workers egress from dynamic IPs).
+- Note: the Workers runtime does not fully implement the DNS SRV lookups the
+  `mongodb+srv://` scheme needs. If the site deploys fine but /api/analytics
+  logs a DNS error, switch to the **standard** connection string — Atlas →
+  Connect → Driver → Node (choose an older driver version to reveal it):
+  `mongodb://user:pass@cluster0-shard-00-00.xxx.mongodb.net:27017,cluster0-shard-00-01.xxx.mongodb.net:27017,cluster0-shard-00-02.xxx.mongodb.net:27017/<db>?ssl=true&replicaSet=atlas-xxx-shard-0&authSource=admin&retryWrites=true&w=majority`
 
 **2. Deploy the Worker**
 
@@ -110,9 +115,17 @@ npx opennextjs-cloudflare deploy
 ```
 (Wrangler prompts you to log in on first use; `npm run deploy` does both.)
 
-Option B — dashboard Git integration:
-- Build command: `npx opennextjs-cloudflare build`
-- Deploy command: `npx opennextjs-cloudflare deploy`
+Option B — dashboard Git integration (Workers Builds):
+- **Build command:** `npx opennextjs-cloudflare build`  ← NOT `npm run build`
+- **Deploy command:** `npx wrangler deploy` (auto-detects OpenNext; or
+  `npx opennextjs-cloudflare deploy` — both are equivalent)
+
+> ⚠️ **Why not `npm run build`?** It only runs `next build`, which produces
+> `.next/` but never the `.open-next/` Worker bundle. The deploy step then
+> fails with *"Could not find compiled Open Next config, did you run the
+> build command?"*. `npx opennextjs-cloudflare build` runs `next build`
+> itself and then compiles the Worker — that is the ONLY build command the
+> Cloudflare dashboard needs. (`npm run build:cf` is a shortcut for it.)
 
 **3. Set the variables** in Cloudflare Dashboard → Workers → kharcha-web →
 Settings → **Variables and Secrets** (type Secret for anything sensitive):
