@@ -8,4 +8,4 @@ ANALYTICS_SESSION_SECRET=pick-another-long-random-string
 # In-app update override (optional — see README “In-app update system”)
 # APP_LATEST_VERSION=1.1.0
 # APP_LATEST_VERSION_CODE=2
-# APP_LATEST_APK_URL=https://direct-download-link/kharcha-1.1.0.apk
+# APP_LATEST_APK_URL=https://github.com/user/repo/releases/download/v1.1.0/kharcha-1.1.0.apk

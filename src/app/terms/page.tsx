@@ -90,11 +90,12 @@ export default function TermsPage() {
 
       <ArticleH2>7. Third-party services</ArticleH2>
       <ArticleP>
-        The APK download is hosted on Google Drive, and this website links to
-        the developer&apos;s external portfolio site. Those third-party services are
-        governed by their own terms and policies, and the developer is not
-        responsible for their content or availability. The app itself performs
-        no third-party network calls — it is fully functional in airplane mode.
+        The APK download is hosted on an external file service (currently
+        Google Drive or GitHub), and this website links to the developer&apos;s
+        external portfolio site. Those third-party services are governed by
+        their own terms and policies, and the developer is not responsible for
+        their content or availability. The app itself performs no third-party
+        network calls — it is fully functional in airplane mode.
       </ArticleP>
 
       <ArticleH2>8. Warranties and liability</ArticleH2>

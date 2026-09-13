@@ -1,5 +1,6 @@
 import { withAnalyticsDb } from "./analytics/mongo";
 import { resolveBinding } from "./analytics/env";
+import { normalizeApkUrl } from "./apk-url";
 /**
  * App release registry — server-side source of truth for the mobile app's
  * in-app update checker (GET /api/app-version).
@@ -114,7 +115,10 @@ function sanitizeRelease(candidate: unknown): AppRelease | null {
  * behavioral ones validate):
  *   APP_LATEST_VERSION      e.g. "1.1.0"
  *   APP_LATEST_VERSION_CODE e.g. "2"
- *   APP_LATEST_APK_URL      direct HTTPS download URL for the APK
+ *   APP_LATEST_APK_URL      direct HTTPS download URL for the APK (known
+ *                           page-shaped links — Drive share pages, GitHub
+ *                           blob/raw — are auto-converted to direct URLs,
+ *                           so pasting a share link still works)
  *   APP_RELEASE_NOTES       JSON array string, or one note per line
  *   APP_UPDATE_MANDATORY    "true" forces the update dialog
  *   APP_RELEASE_SOURCE      "environment" | "database" — forces a mode
@@ -135,7 +139,7 @@ function releaseFromEnvironment(): AppRelease | null {
   return sanitizeRelease({
     version: resolveBinding("APP_LATEST_VERSION").value,
     versionCode: codeRaw ? Number(codeRaw) : Number.NaN,
-    apkUrl: resolveBinding("APP_LATEST_APK_URL").value,
+    apkUrl: normalizeApkUrl(resolveBinding("APP_LATEST_APK_URL").value),
     releaseNotes: notes,
     mandatory:
       resolveBinding("APP_UPDATE_MANDATORY").value.trim().toLowerCase() ===
@@ -170,7 +174,7 @@ async function releaseFromDatabase(): Promise<AppRelease | null> {
   return sanitizeRelease({
     version: doc.version,
     versionCode: doc.versionCode,
-    apkUrl: doc.apkUrl,
+    apkUrl: normalizeApkUrl(doc.apkUrl),
     releaseNotes: doc.releaseNotes,
     mandatory: doc.mandatory,
   });

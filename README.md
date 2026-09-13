@@ -58,9 +58,9 @@ Funnel measured: **Visitor → page_view → download_click → APK download**.
 | `ANALYTICS_SESSION_SECRET` | recommended | signs the admin session cookie |
 | `ANALYTICS_IP_SALT` | optional | extra salt for the ephemeral IP hash |
 | `ANALYTICS_RETENTION_DAYS` | optional | auto-delete data older than N days (TTL) |
-| `APP_LATEST_VERSION` | optional | in-app update: latest version string (e.g. `1.1.0`) |
-| `APP_LATEST_VERSION_CODE` | optional | in-app update: latest Android versionCode (e.g. `2`) |
-| `APP_LATEST_APK_URL` | optional | in-app update: DIRECT https download URL of the APK |
+| `APP_LATEST_VERSION` | optional | latest version string (e.g. `1.1.0`) — in-app update **and** website buttons |
+| `APP_LATEST_VERSION_CODE` | optional | latest Android versionCode (e.g. `2`) |
+| `APP_LATEST_APK_URL` | optional | DIRECT https download URL of the APK — drives the in-app updater **and** every website download button; Drive share pages and GitHub `blob` links are auto-converted to direct URLs |
 | `APP_RELEASE_NOTES` | optional | in-app update: JSON array of release-note strings |
 | `APP_UPDATE_MANDATORY` | optional | in-app update: `true` makes the update dialog non-dismissable |
 | `APP_RELEASE_SOURCE` | optional | `environment` or `database` — forces the release source |
@@ -229,9 +229,13 @@ It is fully independent of the landing page's download buttons.
   `APP_LATEST_APK_URL`, `APP_RELEASE_NOTES`, `APP_UPDATE_MANDATORY`) —
   an env release overrides the database and keeps working during database
   outages. `APP_RELEASE_SOURCE=environment|database` forces a mode.
-- `apkUrl` MUST be a **direct HTTPS file link** (the app downloads it), e.g.
+- `apkUrl` should be a **direct HTTPS file link** (the app downloads it), e.g.
   the Drive direct form `https://drive.usercontent.google.com/download?id=<ID>&export=download&confirm=t`
-  or a GitHub Releases asset URL. Do not host the APK on the Worker itself
+  or a GitHub Releases asset URL (`github.com/<u>/<r>/releases/download/<tag>/<file>`).
+  Known page-shaped links are auto-converted before serving (see
+  `src/lib/apk-url.ts`): Google Drive share pages become the direct endpoint
+  and GitHub `blob`/`raw` links become `raw.githubusercontent.com` (public
+  repo, file ≤ 100 MiB). Do not host the APK on the Worker itself
   (25 MiB asset cap).
 - All payloads pass strict validation (https URL, positive integer
   versionCode) before being served — see `src/lib/app-release.ts`.
@@ -241,14 +245,22 @@ Full release workflow (version bumps, signing, testing): see the app repo's
 
 ## Change the APK download link
 
-Open `src/config/site.ts` and set `APK_DOWNLOAD_URL` — that single value feeds
-every download button on the site (navbar, mobile menu, hero, download
-section, footer, about page). For **Google Drive** share links, the
-direct-download URL (which starts the download immediately instead of opening
-Drive's preview page) is derived automatically. Any other host (e.g.
-Cloudinary) is used as-is.
+There are two layers, and the variable wins once this build is deployed:
 
-Developer identity (name, email, portfolio) is also configured in
+1. **Runtime override (no redeploy)** — set the `APP_LATEST_APK_URL`
+   variable in the Cloudflare dashboard (Worker → Settings → Variables and
+   Secrets). Every website download button reads `GET /api/app-version` on
+   page load and follows that link; the in-app updater uses the same value.
+   Drive share pages and GitHub `blob` links are auto-converted to direct
+   download URLs (`src/lib/apk-url.ts`), so pasting a share link still works.
+   With `APP_LATEST_VERSION` / `APP_LATEST_VERSION_CODE` set alongside, the
+   same edit publishes a new release everywhere at once.
+2. **Build-time fallback** — `src/config/site.ts` `APK_DOWNLOAD_URL`. Used
+   whenever the API cannot answer (endpoint down / nothing configured).
+   For Google Drive share links the direct-download URL is derived
+   automatically; any other host is used as-is.
+
+Developer identity (name, email, portfolio) is configured in
 `src/config/site.ts` (`DEVELOPER_*` constants) and shown on /about, /contact
 and in the footer.
 
@@ -287,11 +299,15 @@ src/
     rate-limit.ts         in-memory fixed-window limiter
     auth.ts               HMAC-signed admin session (Web Crypto)
     server-utils.ts       daily-rotating IP hash (never persisted)
-  config/site.ts          APK_DOWNLOAD_URL, developer identity, SITE_URL —
-                          single source of truth
+  config/site.ts          APK_DOWNLOAD_URL (build-time fallback), developer
+                          identity, SITE_URL — single source of truth
+  lib/apk-url.ts          APK link normalizer (Drive share → direct,
+                          GitHub blob/raw → raw.githubusercontent)
   lib/app-release.ts      release registry for /api/app-version (env +
                           app_releases collection, strict sanitising)
   hooks/use-toast.ts
+  hooks/use-latest-apk-url.ts  runtime APK URL for the website buttons
+                          (one shared fetch of /api/app-version per page)
   lib/utils.ts
 public/assets/            app icon (logo, favicon, OpenGraph image)
 wrangler.jsonc            Cloudflare Workers config (OpenNext)
