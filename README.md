@@ -292,11 +292,13 @@ src/
     globals.css           light/dark palettes, scrollbar theme
   components/
     theme-provider.tsx    light/dark provider (next-themes)
-    landing/              Navbar, Hero, HeroPhone3D, PhoneMockup,
-                          PhoneCarousel (mobile swipe showcase), AppPreview,
-                          Features, WhyUse, HowItWorks, DownloadCTA, Footer,
-                          DownloadButton (the only download action), Reveal,
-                          PageShell, ContactMethods, SiteChrome, ThemeToggle
+    landing/              Navbar, Hero, HeroPhone3D, DestinationPhone +
+                          phoneHandoff.ts (the travelling-phone handoff),
+                          PhoneMockup, PhoneCarousel (mobile swipe showcase),
+                          AppPreview, Features, WhyUse, HowItWorks,
+                          DownloadCTA, Footer, DownloadButton (the only
+                          download action), Reveal, PageShell, ContactMethods,
+                          SiteChrome, ThemeToggle
     analytics/            AnalyticsTracker (page views), track.ts (event
                           transport: sendBeacon + fetch keepalive fallback)
     ui/                   button, toast, toaster (shadcn/ui, subset)
