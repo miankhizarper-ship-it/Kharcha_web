@@ -1,4 +1,5 @@
 import { CalendarClock, FileDown, PiggyBank, Repeat } from "lucide-react";
+import { DestinationPhone } from "@/components/landing/DestinationPhone";
 import { PhoneCarousel } from "@/components/landing/PhoneCarousel";
 import { PhoneMockup } from "@/components/landing/PhoneMockup";
 import { Reveal } from "@/components/landing/Reveal";
@@ -79,15 +80,16 @@ export function AppPreview() {
             < sm: compact swipe carousel (one phone + side peek) so the
             section never stacks into a huge vertical phone tower.
             sm–lg: side-by-side pair, slightly scaled down on tablets.
-            lg+: the original overlapping composition. */}
+            lg+: the original overlapping composition — and the LIGHT phone
+            is the measured destination slot of the hero phone's travelling
+            handoff (see DestinationPhone / phoneHandoff): once the traveller
+            docks, it owns this slot and the placeholder beneath stays
+            visually hidden while its layout box is preserved. */}
         <Reveal delay={0.15} y={40}>
           <div className="mt-8 sm:mt-14">
             <PhoneCarousel />
             <div className="hidden items-center justify-center gap-8 sm:flex sm:scale-[0.92] lg:gap-0 lg:scale-100">
-              <PhoneMockup
-                variant="light"
-                className="lg:-rotate-[4deg] lg:translate-x-6 lg:scale-[0.94] lg:opacity-90"
-              />
+              <DestinationPhone />
               <PhoneMockup
                 variant="dark"
                 className="lg:z-10 lg:-translate-x-6 lg:rotate-[3deg] lg:shadow-black/60"

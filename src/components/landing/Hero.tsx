@@ -81,9 +81,10 @@ export function Hero() {
 
         {/* Phone visual — layered 3D mockup that travels with scroll.
             z-20: during the scroll handoff the phone paints above the app
-            section while dissolving into it. pointer-events-none: it is
-            purely decorative, so it can never block clicks on sections it
-            passes over. */}
+            section while docking into its destination slot. It is NEVER
+            faded or hidden — it stays the one visible phone end-to-end.
+            pointer-events-none: it is purely decorative, so it can never
+            block clicks on sections it passes over. */}
         <Reveal
           delay={0.2}
           y={36}
