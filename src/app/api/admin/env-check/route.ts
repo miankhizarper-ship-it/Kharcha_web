@@ -10,6 +10,7 @@ import {
   withDbTimeout,
 } from "@/lib/analytics/mongo";
 import { isSrvUri } from "@/lib/analytics/srv";
+import { diagnoseAndroidRelease } from "@/lib/app-release";
 
 /**
  * GET /api/admin/env-check — deployment diagnostic for the analytics system.
@@ -42,6 +43,16 @@ import { isSrvUri } from "@/lib/analytics/srv";
  *                               Network Access — Workers need 0.0.0.0/0).
  *     · "error"               → any other failure (message class only).
  *     · "unconfigured"        → no MONGODB_URI — probe skipped.
+ * - `appRelease` → the app update system (GET /api/app-version):
+ *     · `bindings.X.present`  → whether the RUNNING deployment sees each
+ *       APP_* variable (same "dashboard shows it but it's missing" rules
+ *       as above — wrong tab, wrong worker, predates deployment, empty).
+ *     · `envRelease.issues`   → WHY the env release fails validation,
+ *       field by field, with no values (e.g. "versionCode: not a positive
+ *       integer", "apkUrl: must start with https://").
+ *     · `resolved`            → the EXACT public payload /api/app-version
+ *       serves right now (null = the endpoint returns 404). This is data
+ *       the public endpoint serves anyway, so nothing new is exposed.
  */
 export const dynamic = "force-dynamic";
 
@@ -125,6 +136,7 @@ export async function GET() {
     hasAnalyticsBinding("ANALYTICS_ADMIN_PASSWORD");
   const mongoConfigured = hasAnalyticsBinding("MONGODB_URI");
   const mongodb = { ...uriShape(), ...(await probeDatabase()) };
+  const appRelease = await diagnoseAndroidRelease();
 
   return NextResponse.json(
     {
@@ -133,7 +145,8 @@ export async function GET() {
       mongoConfigured,
       bindings,
       mongodb,
-      note: "Presence booleans and classified diagnostics only — no binding value is ever returned. If a binding shows missing although it exists in the Cloudflare dashboard, redeploy (the deployment predates the secret), or check that the secret is on THIS worker and on the Production tab.",
+      appRelease,
+      note: "Presence booleans and classified diagnostics only — no binding value is ever returned. If a binding shows missing although it exists in the Cloudflare dashboard, redeploy (the deployment predates the secret), or check that the secret is on THIS worker and on the Production tab. appRelease.resolved shows the exact public payload /api/app-version serves (it is public data).",
     },
     { headers: { "cache-control": "no-store" } },
   );

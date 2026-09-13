@@ -9,12 +9,18 @@
  * - Google Drive share pages (`/file/d/<id>/view?usp=sharing`) only open
  *   Drive's preview — the file is not served as an attachment.
  * - GitHub `blob` links (`github.com/<u>/<r>/blob/<ref>/<path>`) render an
- *   HTML page; the raw bytes live on `raw.githubusercontent.com`. A downloader
- *   that expects an APK would receive HTML and fail to install.
+ *   HTML page. A downloader that expects an APK would receive HTML and fail
+ *   to install.
+ * - `raw.githubusercontent.com` links work for public repos but are blocked
+ *   or stale-cached on some networks/ISPs; the operator-verified form is the
+ *   same one GitHub's own "View raw" button hands out:
+ *   `github.com/<u>/<r>/raw/refs/heads/<ref>/<path>` (302s to the raw host,
+ *   follows fine in browsers and redirect-aware downloaders).
  *
  * Normalizing here means ONE variable (env or database) keeps working no
- * matter which of the common shapes was pasted, and the same value feeds
- * both the in-app updater (GET /api/app-version) and the website buttons.
+ * matter which of the common shapes was pasted — every GitHub repo-file shape
+ * collapses to the canonical `/raw/refs/heads/…` form — and the same value
+ * feeds both the in-app updater (GET /api/app-version) and the website buttons.
  *
  * Pure string/URL logic — no server-only imports — so any route or test can
  * use it. Unknown hosts are returned unchanged: the caller (sanitizer or
@@ -58,16 +64,36 @@ export function normalizeApkUrl(raw: unknown): string {
   }
 
   // ── GitHub ─────────────────────────────────────────────────────────────────
+  // Canonical repo-file download form: /raw/refs/heads/<ref>/<path…> — what
+  // GitHub's "View raw" button emits. (pathname is reused verbatim — no
+  // re-encoding of already-encoded segments)
+  const withHeadsRef = (tail: string): string =>
+    tail.startsWith("/refs/heads/") ? tail : `/refs/heads${tail}`;
+
   if (host === "github.com" || host === "www.github.com") {
     const segments = parsed.pathname.split("/").filter(Boolean);
     // /<user>/<repo>/blob/<ref>/<path…> | /<user>/<repo>/raw/<ref>/<path…>
-    // → raw.githubusercontent.com/<user>/<repo>/<ref>/<path…>
-    // (pathname is reused verbatim — no re-encoding of already-encoded segments)
+    // → github.com/<user>/<repo>/raw/refs/heads/<ref>/<path…>
     if (segments.length >= 5 && (segments[2] === "blob" || segments[2] === "raw")) {
-      const withoutMode = parsed.pathname.replace(/^(\/[^/]+\/[^/]+)\/(?:blob|raw)(?=\/)/, "$1");
-      return `https://raw.githubusercontent.com${withoutMode}`;
+      const tail = withHeadsRef(parsed.pathname.replace(/^\/[^/]+\/[^/]+\/(?:blob|raw)/, ""));
+      if (tail !== "/refs/heads") return `https://github.com/${segments[0]}/${segments[1]}/raw${tail}`;
+      return trimmed; // pathological /raw/refs/heads with no path — leave as-is
     }
     // releases/download/<tag>/<file> is already a direct asset URL — keep it.
+    return trimmed;
+  }
+
+  // raw.githubusercontent.com/<user>/<repo>/<ref>/<path…>
+  // → github.com/<user>/<repo>/raw/refs/heads/<ref>/<path…>
+  // (some operators paste the raw host directly; canonicalize to the form
+  // verified to download reliably in the field)
+  if (host === "raw.githubusercontent.com") {
+    const segments = parsed.pathname.split("/").filter(Boolean);
+    if (segments.length >= 3) {
+      const [user, repo, ...pathParts] = segments;
+      const tail = withHeadsRef(`/${pathParts.join("/")}`);
+      return `https://github.com/${user}/${repo}/raw${tail}`;
+    }
     return trimmed;
   }
 

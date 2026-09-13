@@ -234,9 +234,10 @@ It is fully independent of the landing page's download buttons.
   or a GitHub Releases asset URL (`github.com/<u>/<r>/releases/download/<tag>/<file>`).
   Known page-shaped links are auto-converted before serving (see
   `src/lib/apk-url.ts`): Google Drive share pages become the direct endpoint
-  and GitHub `blob`/`raw` links become `raw.githubusercontent.com` (public
-  repo, file ≤ 100 MiB). Do not host the APK on the Worker itself
-  (25 MiB asset cap).
+  and every GitHub repo-file shape (`blob`, `raw`, raw.githubusercontent.com)
+  collapses to the canonical `github.com/<u>/<r>/raw/refs/heads/<branch>/<file>`
+  form — the one GitHub's own "View raw" button hands out (public repo,
+  file ≤ 100 MiB). Do not host the APK on the Worker itself (25 MiB asset cap).
 - All payloads pass strict validation (https URL, positive integer
   versionCode) before being served — see `src/lib/app-release.ts`.
 
@@ -252,8 +253,9 @@ build is deployed there is **no hardcoded download link anywhere**:
 - Every website download button reads `GET /api/app-version` on page load and
   follows that link; the mobile app's update checker uses the same value —
   one variable edit publishes everywhere, no redeploy.
-- Drive share pages and GitHub `blob` links are auto-converted to direct
-  download URLs (`src/lib/apk-url.ts`), so pasting a share link still works.
+- Drive share pages and GitHub `blob` links are auto-converted to the
+  canonical `github.com/.../raw/refs/heads/...` download URL
+  (`src/lib/apk-url.ts`), so pasting a share link still works.
 - With `APP_LATEST_VERSION` / `APP_LATEST_VERSION_CODE` set alongside, the
   same edit also publishes the in-app update (version dialog) at once.
 - `src/config/site.ts` `APK_DOWNLOAD_URL` is an intentionally EMPTY
@@ -264,7 +266,9 @@ build is deployed there is **no hardcoded download link anywhere**:
 GitHub hosting tip: use a **public** repo (private repos 404 for visitors and
 the app) and prefer a Releases asset link
 (`github.com/<u>/<r>/releases/download/<tag>/<file>`); committed files are
-capped at 100 MiB.
+capped at 100 MiB. Repo-file links are served in the `raw/refs/heads` form,
+which redirects to `raw.githubusercontent.com` — if a network blocks that
+host, host the APK on Releases or another CDN instead.
 
 Developer identity (name, email, portfolio) is configured in
 `src/config/site.ts` (`DEVELOPER_*` constants) and shown on /about, /contact
@@ -309,7 +313,8 @@ src/
                           link is the APP_LATEST_APK_URL variable), developer
                           identity, SITE_URL — single source of truth
   lib/apk-url.ts          APK link normalizer (Drive share → direct,
-                          GitHub blob/raw → raw.githubusercontent)
+                          GitHub blob/raw/raw-host → canonical
+                          github.com .../raw/refs/heads/... form)
   lib/app-release.ts      release registry for /api/app-version (env +
                           app_releases collection, strict sanitising)
   hooks/use-toast.ts

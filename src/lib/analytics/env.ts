@@ -39,6 +39,21 @@ export const ANALYTICS_BINDING_KEYS = [
   "ANALYTICS_RETENTION_DAYS",
 ] as const;
 
+/**
+ * Bindings of the app release system (GET /api/app-version), reported by the
+ * env-check diagnostic alongside the analytics keys. APP_LATEST_APK_URL is
+ * not secret (the endpoint serves it publicly once valid) but the report
+ * still exposes presence/source booleans only — values never.
+ */
+export const APP_RELEASE_BINDING_KEYS = [
+  "APP_LATEST_VERSION",
+  "APP_LATEST_VERSION_CODE",
+  "APP_LATEST_APK_URL",
+  "APP_RELEASE_NOTES",
+  "APP_UPDATE_MANDATORY",
+  "APP_RELEASE_SOURCE",
+] as const;
+
 function nonEmpty(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }

@@ -1,5 +1,9 @@
 import { withAnalyticsDb } from "./analytics/mongo";
-import { resolveBinding } from "./analytics/env";
+import {
+  APP_RELEASE_BINDING_KEYS,
+  resolveBinding,
+  type BindingSource,
+} from "./analytics/env";
 import { normalizeApkUrl } from "./apk-url";
 /**
  * App release registry — server-side source of truth for the mobile app's
@@ -61,34 +65,53 @@ function safeVersionCode(value: unknown): number | null {
 
 /**
  * Validate an untrusted release candidate (DB document fields or env values).
- * Returns null for ANY violation of the behavioral contract (version string,
- * positive integer versionCode, HTTPS apkUrl). `releaseNotes` is cosmetic, so
- * it is sanitized leniently (non-strings dropped, trimmed, capped) instead of
- * rejecting the whole release. Extra/unknown fields are ignored — the API can
- * grow without breaking old clients.
+ * Returns the release plus value-free `issues` describing EVERY violation of
+ * the behavioral contract (version string, positive integer versionCode,
+ * HTTPS apkUrl). `releaseNotes` is cosmetic, so it is sanitized leniently
+ * (non-strings dropped, trimmed, capped) instead of rejecting the whole
+ * release. Extra/unknown fields are ignored — the API can grow without
+ * breaking old clients. `release` is null when any hard field fails; the
+ * issues are what the env-check diagnostic surfaces to the operator.
  */
-function sanitizeRelease(candidate: unknown): AppRelease | null {
-  if (typeof candidate !== "object" || candidate === null) return null;
+function validateRelease(candidate: unknown): {
+  release: AppRelease | null;
+  issues: string[];
+} {
+  const issues: string[] = [];
+  if (typeof candidate !== "object" || candidate === null) {
+    return { release: null, issues: ["payload is not an object"] };
+  }
   const raw = candidate as Record<string, unknown>;
 
   const version = typeof raw.version === "string" ? raw.version.trim() : "";
-  if (!version || version.length > MAX_VERSION_LENGTH) return null;
+  if (!version) issues.push("version: missing or empty");
+  else if (version.length > MAX_VERSION_LENGTH)
+    issues.push(`version: longer than ${MAX_VERSION_LENGTH} characters`);
 
   const versionCode = safeVersionCode(raw.versionCode);
-  if (versionCode === null) return null;
+  if (versionCode === null)
+    issues.push(
+      "versionCode: not a positive integer (send the bare number, e.g. 2)",
+    );
 
-  if (typeof raw.apkUrl !== "string") return null;
-  const apkUrl = raw.apkUrl.trim();
-  if (!apkUrl || apkUrl.length > MAX_APK_URL_LENGTH) return null;
-  let parsed: URL;
-  try {
-    parsed = new URL(apkUrl);
-  } catch {
-    return null;
+  const apkRaw = typeof raw.apkUrl === "string" ? raw.apkUrl.trim() : "";
+  if (!apkRaw) {
+    issues.push("apkUrl: missing or empty");
+  } else if (apkRaw.length > MAX_APK_URL_LENGTH) {
+    issues.push(`apkUrl: longer than ${MAX_APK_URL_LENGTH} characters`);
+  } else {
+    let parsed: URL | null = null;
+    try {
+      parsed = new URL(apkRaw);
+    } catch {
+      issues.push("apkUrl: not a valid URL");
+    }
+    if (parsed && parsed.protocol !== "https:")
+      issues.push("apkUrl: must start with https://");
   }
-  // HTTPS only — the mobile app downloads and installs whatever lands here.
-  if (parsed.protocol !== "https:") return null;
+  const apkUrl = apkRaw;
 
+  const valid = issues.length === 0;
   let releaseNotes: string[] = [];
   if (Array.isArray(raw.releaseNotes)) {
     releaseNotes = raw.releaseNotes
@@ -99,13 +122,21 @@ function sanitizeRelease(candidate: unknown): AppRelease | null {
       .map((note) => note.slice(0, MAX_NOTE_LENGTH));
   }
 
+  if (!valid) return { release: null, issues };
   return {
-    version,
-    versionCode,
-    apkUrl,
-    releaseNotes,
-    mandatory: raw.mandatory === true,
+    release: {
+      version,
+      versionCode: versionCode as number,
+      apkUrl,
+      releaseNotes,
+      mandatory: raw.mandatory === true,
+    },
+    issues,
   };
+}
+
+function sanitizeRelease(candidate: unknown): AppRelease | null {
+  return validateRelease(candidate).release;
 }
 
 // ── source 1: environment bindings ───────────────────────────────────────────
@@ -231,4 +262,74 @@ export async function resolveLatestAndroidRelease(): Promise<AppReleaseResolutio
   }
 
   return { release: null, source: "none" };
+}
+
+// ── diagnostics (for GET /api/admin/env-check) ──────────────────────────────
+
+export interface ReleaseDiagnosis {
+  /** Presence/source of every APP_* binding, as the RUNNING deployment sees them. */
+  bindings: Record<string, { present: boolean; source: BindingSource }>;
+  /** APP_RELEASE_SOURCE value, if the operator forced a mode. */
+  forcedSource: string;
+  /** Whether the env-only candidate passes validation + value-free issues. */
+  envRelease: { valid: boolean; issues: string[] };
+  /** What /api/app-version actually serves right now (its public payload). */
+  resolved: {
+    source: ReleaseSource;
+    release:
+      | {
+          version: string;
+          versionCode: number;
+          apkUrl: string;
+          releaseNotes: string[];
+          mandatory: boolean;
+        }
+      | null;
+  };
+}
+
+/**
+ * Full diagnostic picture of the release system for the env-check endpoint.
+ * Binding VALUES are never reported — only presence/source, validation
+ * issues (field-level, value-free) and, when a release actually resolves,
+ * the SAME public payload /api/app-version serves to every app user.
+ * Never throws: every part is individually contained.
+ */
+export async function diagnoseAndroidRelease(): Promise<ReleaseDiagnosis> {
+  const bindings: ReleaseDiagnosis["bindings"] = {};
+  for (const key of APP_RELEASE_BINDING_KEYS) {
+    const { source } = resolveBinding(key);
+    bindings[key] = { present: source !== "missing", source };
+  }
+
+  // Validate the env candidate exactly the way releaseFromEnvironment does
+  // (cosmetic fields omitted — they can never produce issues anyway).
+  const codeRaw = resolveBinding("APP_LATEST_VERSION_CODE").value;
+  const envCheck = validateRelease({
+    version: resolveBinding("APP_LATEST_VERSION").value,
+    versionCode: codeRaw ? Number(codeRaw) : Number.NaN,
+    apkUrl: normalizeApkUrl(resolveBinding("APP_LATEST_APK_URL").value),
+    releaseNotes: [],
+    mandatory: false,
+  });
+
+  const { release, source } = await resolveLatestAndroidRelease();
+
+  return {
+    bindings,
+    forcedSource: resolveBinding("APP_RELEASE_SOURCE").value.trim().toLowerCase(),
+    envRelease: { valid: envCheck.release !== null, issues: envCheck.issues },
+    resolved: {
+      source,
+      release: release
+        ? {
+            version: release.version,
+            versionCode: release.versionCode,
+            apkUrl: release.apkUrl,
+            releaseNotes: release.releaseNotes,
+            mandatory: release.mandatory,
+          }
+        : null,
+    },
+  };
 }
