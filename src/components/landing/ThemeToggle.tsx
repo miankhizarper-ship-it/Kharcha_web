@@ -32,7 +32,10 @@ export function ThemeToggle({ className, tone = "navbar" }: ThemeToggleProps) {
       aria-label="Toggle color theme"
       title="Toggle light / dark theme"
       className={cn(
-        "relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-brand-600",
+        // 44px square while the mobile navbar bar (hamburger) is active
+        // (<lg), visually identical 36px on desktop — same icon size, only
+        // the tap target grows on mobile.
+        "relative flex h-11 w-11 items-center justify-center rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-brand-600 lg:h-9 lg:w-9",
         tone === "navbar"
           ? "text-slate-600 hover:bg-brand-50 hover:text-brand-800 dark:text-slate-300 dark:hover:bg-white/[0.06] dark:hover:text-brand-300"
           : "border border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-800 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-brand-300",

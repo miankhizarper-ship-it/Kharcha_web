@@ -43,7 +43,7 @@ export function AppPreview() {
         className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-brand-700/20 blur-[120px]"
       />
 
-      <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+      <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:py-28">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-300">
             The app
@@ -60,9 +60,11 @@ export function AppPreview() {
           </p>
         </Reveal>
 
-        {/* Two phones — dark theme front, light behind */}
+      {/* Two phones — dark theme front, light behind. Stacked on phones,
+          side-by-side from md (2×292px + gap fits 768px), overlapping
+          from lg. */}
         <Reveal delay={0.15} y={40}>
-          <div className="mt-14 flex flex-col items-center justify-center gap-10 sm:gap-6 lg:flex-row lg:gap-0">
+          <div className="mt-10 flex flex-col items-center justify-center gap-10 sm:mt-14 md:flex-row md:gap-8 lg:gap-0">
             <PhoneMockup
               variant="light"
               className="lg:-rotate-[4deg] lg:translate-x-6 lg:scale-[0.94] lg:opacity-90"
@@ -75,7 +77,7 @@ export function AppPreview() {
         </Reveal>
 
         {/* Real capability strip */}
-        <div className="mx-auto mt-16 grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto mt-10 grid max-w-4xl gap-4 sm:mt-16 sm:grid-cols-2 lg:grid-cols-4">
           {CAPABILITIES.map((item, index) => (
             <Reveal key={item.title} delay={0.1 + index * 0.08}>
               <div className="h-full rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm transition-colors hover:border-brand-400/40 hover:bg-white/[0.07]">

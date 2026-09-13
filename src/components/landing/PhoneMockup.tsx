@@ -86,7 +86,10 @@ export function PhoneMockup({ variant = "light", className }: PhoneMockupProps) 
       role="img"
       aria-label="Preview of the Kharcha app home screen: total balance with income and expenses, a weekly spending chart, recent transactions, and a bottom navigation bar."
       className={cn(
-        "relative w-[264px] shrink-0 select-none rounded-[2.7rem] p-[10px] shadow-2xl sm:w-[292px]",
+        // Fluid safety: fixed design width on every real viewport, but
+        // max-w-full lets it compress instead of overflowing sub-264px
+        // windows or zoomed-out layouts.
+        "relative w-[264px] max-w-full shrink-0 select-none rounded-[2.7rem] p-[10px] shadow-2xl sm:w-[292px]",
         dark ? "bg-brand-950 ring-1 ring-white/15" : "bg-brand-950 ring-1 ring-black/25",
         className
       )}

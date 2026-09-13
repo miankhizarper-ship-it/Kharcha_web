@@ -27,7 +27,7 @@ export function WhyUse() {
         className="pointer-events-none absolute -right-24 top-1/2 h-[420px] w-[420px] -translate-y-1/2 rounded-full bg-brand-100/70 blur-3xl dark:bg-brand-800/10"
       />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-2 lg:gap-16">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:py-28">
         {/* Philosophy */}
         <div>
           <Reveal>
@@ -64,9 +64,10 @@ export function WhyUse() {
           </Reveal>
         </div>
 
-        {/* Get / never-get card */}
+        {/* Get / never-get card — capped and centered while stacked so it
+            never stretches edge-to-edge on wide phones / tablets. */}
         <Reveal delay={0.15}>
-          <div className="rounded-3xl border border-brand-100 bg-ink p-7 shadow-[0_30px_60px_-30px_rgba(10,36,29,0.5)] sm:p-9">
+          <div className="mx-auto w-full max-w-xl rounded-3xl border border-brand-100 bg-ink p-6 shadow-[0_30px_60px_-30px_rgba(10,36,29,0.5)] sm:p-9 lg:max-w-none">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-300">
                 What you get

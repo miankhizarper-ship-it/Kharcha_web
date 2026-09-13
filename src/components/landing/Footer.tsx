@@ -58,7 +58,7 @@ export function Footer() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className="text-sm text-slate-600 transition-colors hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-slate-400 dark:hover:text-brand-300"
+                    className="-mx-2 inline-flex min-h-11 items-center px-2 text-sm text-slate-600 transition-colors hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-slate-400 dark:hover:text-brand-300"
                   >
                     {link.label}
                   </a>
@@ -78,7 +78,7 @@ export function Footer() {
                   <li key={link.href}>
                     <a
                       href={link.href}
-                      className="text-sm text-slate-600 transition-colors hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-slate-400 dark:hover:text-brand-300"
+                      className="-mx-2 inline-flex min-h-11 items-center px-2 text-sm text-slate-600 transition-colors hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-slate-400 dark:hover:text-brand-300"
                     >
                       {link.label}
                     </a>
@@ -95,7 +95,7 @@ export function Footer() {
                   <li key={link.href}>
                     <a
                       href={link.href}
-                      className="text-sm text-slate-600 transition-colors hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-slate-400 dark:hover:text-brand-300"
+                      className="-mx-2 inline-flex min-h-11 items-center px-2 text-sm text-slate-600 transition-colors hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-slate-400 dark:hover:text-brand-300"
                     >
                       {link.label}
                     </a>
@@ -113,7 +113,11 @@ export function Footer() {
             <p className="mt-4 max-w-[240px] text-sm leading-relaxed text-slate-600 dark:text-slate-400">
               Available as an Android APK — install it and start tracking right away.
             </p>
-            <DownloadButton size="sm" className="mt-4" label="Download App" />
+            <DownloadButton
+              size="sm"
+              className="mt-4 h-11 px-5 sm:h-8 sm:px-3"
+              label="Download App"
+            />
           </div>
         </div>
 

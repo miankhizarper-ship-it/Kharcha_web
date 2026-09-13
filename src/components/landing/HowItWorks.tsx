@@ -28,7 +28,7 @@ const STEPS = [
 export function HowItWorks() {
   return (
     <section id="how-it-works" aria-labelledby="how-heading">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:py-28">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400">
             How it works
@@ -42,7 +42,7 @@ export function HowItWorks() {
         </Reveal>
 
         {/* Relative connector line drawn behind the cards on desktop */}
-        <div className="relative mt-14">
+        <div className="relative mt-10 sm:mt-14">
           <div
             aria-hidden="true"
             className="absolute left-[16%] right-[16%] top-10 hidden border-t-2 border-dashed border-brand-200 lg:block dark:border-brand-800"

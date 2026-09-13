@@ -4,10 +4,10 @@ import { APP_NAME } from "@/config/site";
 
 export function DownloadCTA() {
   return (
-    <section id="download" aria-labelledby="download-heading" className="pb-20 sm:pb-28">
+    <section id="download" aria-labelledby="download-heading" className="pb-14 sm:pb-20 lg:pb-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <Reveal>
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-800 via-brand-900 to-ink px-6 py-16 text-center shadow-[0_40px_80px_-40px_rgba(10,36,29,0.7)] sm:px-12 sm:py-20">
+          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-800 via-brand-900 to-ink px-5 py-12 text-center shadow-[0_40px_80px_-40px_rgba(10,36,29,0.7)] sm:px-12 sm:py-16 lg:py-20">
             {/* Decorative glows + rings */}
             <div aria-hidden="true" className="pointer-events-none absolute inset-0">
               <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-brand-500/20 blur-3xl" />
@@ -28,11 +28,11 @@ export function DownloadCTA() {
                 tracker that respects your privacy.
               </p>
 
-              <div className="mt-9 flex justify-center">
+              <div className="mt-8 flex justify-center sm:mt-9">
                 <DownloadButton
                   size="lg"
                   variant="secondary"
-                  className="h-12 bg-white px-8 text-base font-semibold text-brand-900 shadow-xl shadow-black/20 hover:bg-brand-50"
+                  className="h-12 w-full max-w-sm bg-white px-8 text-base font-semibold text-brand-900 shadow-xl shadow-black/20 hover:bg-brand-50 sm:w-auto"
                   label="Download Android App"
                 />
               </div>

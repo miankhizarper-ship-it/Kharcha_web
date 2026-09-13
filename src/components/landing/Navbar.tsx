@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronRight, Menu, X } from "lucide-react";
 import { DownloadButton } from "@/components/landing/DownloadButton";
@@ -28,6 +28,9 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const menuPanelRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -36,14 +39,65 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close the menu with the Escape key (keyboard a11y).
+  // Mobile-menu behaviour: Escape closes and returns focus to the toggle,
+  // Tab is trapped inside the open panel, a tap outside closes it, page
+  // scroll is locked behind it, and the first link is focused on open
+  // (WAI-ARIA disclosure pattern).
   useEffect(() => {
     if (!menuOpen) return;
+
+    const focusables = () =>
+      Array.from(
+        menuPanelRef.current?.querySelectorAll<HTMLElement>(
+          "a[href], button:not([disabled])",
+        ) ?? [],
+      );
+
+    // Move focus into the menu (after the panel mounts).
+    focusables()[0]?.focus();
+
+    // Lock the page behind the open menu — the panel itself stays scrollable
+    // for short landscape viewports.
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        toggleRef.current?.focus();
+        return;
+      }
+      if (event.key !== "Tab" || !menuPanelRef.current) return;
+      const items = focusables();
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (
+        headerRef.current &&
+        event.target instanceof Node &&
+        !headerRef.current.contains(event.target)
+      ) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
   }, [menuOpen]);
 
   // Logo: back to top on the home page, home on inner pages.
@@ -51,6 +105,7 @@ export function Navbar() {
 
   return (
     <header
+      ref={headerRef}
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-all duration-300",
         menuOpen
@@ -89,8 +144,10 @@ export function Navbar() {
           </span>
         </a>
 
-        {/* Desktop links */}
-        <ul className="hidden items-center gap-1 md:flex">
+        {/* Desktop links — shown from lg up: at md (768px) the five inline
+            labels + toggle + CTA physically exceed the bar and wrap, so the
+            hamburger stays until 1024px. */}
+        <ul className="hidden items-center gap-1 lg:flex">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
               <a
@@ -110,13 +167,13 @@ export function Navbar() {
         </ul>
 
         {/* Desktop actions: theme toggle + CTA */}
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <ThemeToggle />
           <DownloadButton size="sm" label="Download App" />
         </div>
 
         {/* Mobile actions: theme toggle + menu button */}
-        <div className="flex items-center gap-1 md:hidden">
+        <div className="flex items-center gap-1 lg:hidden">
           <ThemeToggle
             className={cn(
               menuOpen && "text-slate-100 hover:bg-white/10 hover:text-white"
@@ -124,12 +181,13 @@ export function Navbar() {
           />
           <button
             type="button"
+            ref={toggleRef}
             onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             className={cn(
-              "flex h-11 w-11 items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-brand-300 md:hidden",
+              "flex h-11 w-11 items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-brand-300 lg:hidden",
               menuOpen
                 ? "text-slate-100 hover:bg-white/10"
                 : "text-slate-700 hover:bg-brand-50 focus-visible:outline-brand-600 dark:text-slate-200 dark:hover:bg-white/10"
@@ -144,7 +202,8 @@ export function Navbar() {
       {menuOpen && (
         <div
           id="mobile-menu"
-          className="animate-menu-in relative overflow-hidden border-t border-white/10 bg-ink px-4 pb-6 pt-3 md:hidden"
+          ref={menuPanelRef}
+          className="animate-menu-in relative max-h-[calc(100dvh-4.5rem)] overflow-y-auto overflow-x-hidden border-t border-white/10 bg-ink px-4 pb-6 pt-3 lg:hidden"
         >
           {/* Soft brand-green glow, decorative only */}
           <div
