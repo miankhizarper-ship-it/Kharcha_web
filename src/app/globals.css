@@ -231,6 +231,15 @@
   }
 }
 
+/* Hide scrollbars on the theme-preview swipe track while keeping it
+   fully scrollable (mouse drag, touch swipe, keyboard, snap points). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Anchor offset so section headings are never hidden behind the fixed navbar */
 html {
   scroll-behavior: smooth;

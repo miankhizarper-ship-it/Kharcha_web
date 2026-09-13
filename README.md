@@ -292,7 +292,8 @@ src/
     globals.css           light/dark palettes, scrollbar theme
   components/
     theme-provider.tsx    light/dark provider (next-themes)
-    landing/              Navbar, Hero, HeroPhone3D, PhoneMockup, AppPreview,
+    landing/              Navbar, Hero, HeroPhone3D, PhoneMockup,
+                          PhoneCarousel (mobile swipe showcase), AppPreview,
                           Features, WhyUse, HowItWorks, DownloadCTA, Footer,
                           DownloadButton (the only download action), Reveal,
                           PageShell, ContactMethods, SiteChrome, ThemeToggle

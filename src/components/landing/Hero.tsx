@@ -14,9 +14,11 @@ export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
 
   return (
-    <section id="top" ref={sectionRef} className="relative overflow-hidden">
-      {/* Decorative background — brand-tinted blobs, never interactive */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+    <section id="top" ref={sectionRef} className="relative">
+      {/* Decorative background — brand-tinted blobs, never interactive.
+          Clipped in its own layer (NOT on the section) so the travelling
+          phone can legally overflow the hero bounds toward the app section. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-32 right-[-10%] h-[480px] w-[480px] rounded-full bg-gradient-to-br from-brand-100 via-brand-50 to-transparent opacity-80 blur-2xl dark:from-brand-900/50 dark:via-brand-950/40 dark:to-transparent" />
         <div className="absolute left-[-15%] top-1/3 h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-50 to-transparent opacity-70 blur-2xl dark:from-emerald-950/40 dark:to-transparent" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-200/60 to-transparent dark:via-brand-800/40" />
@@ -77,8 +79,16 @@ export function Hero() {
           </Reveal>
         </div>
 
-        {/* Phone visual — layered 3D mockup with scroll-driven drift */}
-        <Reveal delay={0.2} y={36} className="relative mx-auto lg:mx-0 lg:justify-self-center">
+        {/* Phone visual — layered 3D mockup that travels with scroll.
+            z-20: during the scroll handoff the phone paints above the app
+            section while dissolving into it. pointer-events-none: it is
+            purely decorative, so it can never block clicks on sections it
+            passes over. */}
+        <Reveal
+          delay={0.2}
+          y={36}
+          className="pointer-events-none relative z-20 mx-auto lg:mx-0 lg:justify-self-center"
+        >
           <HeroPhone3D sectionRef={sectionRef} />
         </Reveal>
       </div>
