@@ -1,9 +1,14 @@
-import { COLLECTIONS, getAnalyticsDb } from "./mongo";
+import { COLLECTIONS, DB_HARD_TIMEOUT_MS, withAnalyticsDb } from "./mongo";
 
 /**
  * Dashboard read path — 100% MongoDB aggregation pipelines.
  * No raw event documents ever reach the frontend; every query returns
  * grouped, counted, bounded results (max 8 buckets per breakdown).
+ *
+ * The whole read is raced against DB_HARD_TIMEOUT_MS: if any aggregation
+ * (or the connection itself) never settles — the driver's promises can hang
+ * forever in the Workers runtime — the page still renders its amber
+ * "database unreachable" fallback instead of hanging the Worker.
  */
 
 export type DateRange = "today" | "7d" | "30d" | "all";
@@ -55,7 +60,13 @@ export type DashboardData = {
 };
 
 export async function getDashboardData(range: DateRange): Promise<DashboardData> {
-  const db = await getAnalyticsDb();
+  // One hard-capped database session — see file header. A never-settling
+  // driver promise must degrade to the page's amber fallback, never hang
+  // the Worker.
+  return withAnalyticsDb((db) => getDashboardDataWithDb(db, range), "dashboard-read", DB_HARD_TIMEOUT_MS);
+}
+
+async function getDashboardDataWithDb(db: import("mongodb").Db, range: DateRange): Promise<DashboardData> {
   const since = sinceFor(range);
   const visits = db.collection(COLLECTIONS.visits);
   const events = db.collection(COLLECTIONS.events);
@@ -196,8 +207,11 @@ export async function getDashboardData(range: DateRange): Promise<DashboardData>
   };
 }
 
-function toBuckets(rows: { _id: unknown; count: number }[]): Bucket[] {
+function toBuckets(rows: readonly { _id?: unknown; count?: unknown }[]): Bucket[] {
   return rows
     .filter((r) => r._id != null)
-    .map((r) => ({ label: String(r._id) || "Unknown", count: r.count }));
+    .map((r) => ({
+      label: String(r._id) || "Unknown",
+      count: typeof r.count === "number" ? r.count : Number(r.count ?? 0),
+    }));
 }

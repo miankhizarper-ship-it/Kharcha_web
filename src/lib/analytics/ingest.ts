@@ -1,6 +1,7 @@
 import type { ObjectId } from "mongodb";
+import type { Db } from "mongodb";
 import { getAnalyticsBinding } from "./env";
-import { COLLECTIONS, getAnalyticsDb } from "./mongo";
+import { COLLECTIONS, DB_HARD_TIMEOUT_MS, withAnalyticsDb } from "./mongo";
 import { referrerHost, sanitizePath, type IngestPayload } from "./schema";
 import { parseUserAgent, type UaInfo } from "./ua";
 
@@ -52,18 +53,20 @@ export type EventDoc = {
   _id?: ObjectId;
 };
 
-let indexesReady: Promise<void> | null = null;
+let indexesReady = false;
 
-/** Creates collections + indexes once per process. TTL indexes are only
- * added when ANALYTICS_RETENTION_DAYS is set. */
-export function ensureIndexes(): Promise<void> {
-  indexesReady ??= (async () => {
-    const db = await getAnalyticsDb();
-    const retentionDays = Number(getAnalyticsBinding("ANALYTICS_RETENTION_DAYS"));
+/** Creates collections + indexes once per PROCESS (server-side index state
+ * persists in MongoDB itself, so one success is final until it throws).
+ * TTL indexes are only added when ANALYTICS_RETENTION_DAYS is set. */
+export async function ensureIndexes(db: Db): Promise<void> {
+  if (indexesReady) return;
 
-    const events = db.collection(COLLECTIONS.events);
-    const visits = db.collection(COLLECTIONS.visits);
+  const retentionDays = Number(getAnalyticsBinding("ANALYTICS_RETENTION_DAYS"));
 
+  const events = db.collection(COLLECTIONS.events);
+  const visits = db.collection(COLLECTIONS.visits);
+
+  try {
     await Promise.all([
       events.createIndex({ ts: 1 }),
       events.createIndex({ name: 1, ts: 1 }),
@@ -79,11 +82,13 @@ export function ensureIndexes(): Promise<void> {
         ? visits.createIndex({ lastSeenAt: 1 }, { expireAfterSeconds: Math.floor(retentionDays * 86_400) })
         : Promise.resolve(),
     ]);
-  })().catch((err) => {
-    indexesReady = null; // allow retry on next request
+    indexesReady = true;
+  } catch (err) {
+    // Not marking ready — the next request retries with its own session.
+    // Concurrent cold-start requests may run createIndex twice; that is a
+    // harmless server-side no-op when the index already exists.
     throw err;
-  });
-  return indexesReady;
+  }
 }
 
 function deviceFields(ua: UaInfo) {
@@ -94,14 +99,29 @@ function deviceFields(ua: UaInfo) {
   };
 }
 
-/** Upserts the session visit doc + inserts the event doc. */
+/** Upserts the session visit doc + inserts the event doc.
+ * Runs in its own database session, raced against DB_HARD_TIMEOUT_MS — a
+ * never-settling driver promise must end as an ordinary 503 from the route,
+ * never a hung Worker request. */
 export async function recordAnalytics(
   payload: IngestPayload,
   ua: UaInfo,
   country: string | undefined,
 ): Promise<void> {
-  const db = await getAnalyticsDb();
-  await ensureIndexes();
+  return withAnalyticsDb(
+    (db) => recordAnalyticsWithDb(db, payload, ua, country),
+    "ingest",
+    DB_HARD_TIMEOUT_MS,
+  );
+}
+
+async function recordAnalyticsWithDb(
+  db: Db,
+  payload: IngestPayload,
+  ua: UaInfo,
+  country: string | undefined,
+): Promise<void> {
+  await ensureIndexes(db);
 
   const now = new Date();
   const path = sanitizePath(payload.path);

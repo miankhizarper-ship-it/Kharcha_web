@@ -107,11 +107,19 @@ functions in one Worker; MongoDB is reached at runtime with the
 - Create a free cluster (M0), a database user, and note the connection string
   (`mongodb+srv://user:pass@cluster0.xxx.mongodb.net/...`).
 - Network Access → add **0.0.0.0/0** (Workers egress from dynamic IPs).
-- Note: the Workers runtime does not fully implement the DNS SRV lookups the
-  `mongodb+srv://` scheme needs. If the site deploys fine but /api/analytics
-  logs a DNS error, switch to the **standard** connection string — Atlas →
-  Connect → Driver → Node (choose an older driver version to reveal it):
+- Both `mongodb+srv://` and standard `mongodb://` strings are supported. The
+  Workers runtime cannot perform the driver's own DNS SRV lookups, so this
+  project resolves `mongodb+srv://` seeds itself over DNS-over-HTTPS (see
+  `src/lib/analytics/srv.ts`, cached 10 min per isolate). If DoH egress is
+  ever unavailable in your environment, switch to the **standard** string —
+  Atlas → Connect → Driver → Node (choose an older driver version to reveal
+  it):
   `mongodb://user:pass@cluster0-shard-00-00.xxx.mongodb.net:27017,cluster0-shard-00-01.xxx.mongodb.net:27017,cluster0-shard-00-02.xxx.mongodb.net:27017/<db>?ssl=true&replicaSet=atlas-xxx-shard-0&authSource=admin&retryWrites=true&w=majority`
+- **Never-hang guarantee**: every database step (connection + every read/write)
+  is raced against a hard ~8 s timer. A slow or unreachable database degrades
+  to an amber banner on the dashboard and a silent 503 on the ingestion
+  endpoint — the Worker can never again be cancelled for "hung" code, and a
+  timed-out client is evicted so the next request starts fresh.
 
 **2. Deploy the Worker**
 
@@ -165,6 +173,12 @@ saved), then verify:
 open https://<your-worker>.workers.dev/
 # Diagnostic: which bindings does the RUNNING deployment actually see?
 open https://<your-worker>.workers.dev/api/admin/env-check
+# The `mongodb` block in the response shows the URI's SHAPE (scheme, seed
+# host count — never the value) plus a LIVE classified ping:
+#   reachability: ok | timeout | auth-failed | network-unreachable | error
+#                 | unconfigured
+# That single field tells you whether the database is reachable, whether the
+# credentials work, or whether Atlas Network Access is blocking Workers
 curl -s -o /dev/null -w "%{http_code}\n" \
   -X POST https://<your-worker>.workers.dev/api/analytics \
   -H "Content-Type: application/json" \
@@ -264,8 +278,9 @@ src/
                           transport: sendBeacon + fetch keepalive fallback)
     ui/                   button, toast, toaster (shadcn/ui, subset)
   lib/analytics/
-    mongo.ts              cached MongoDB client (server-only)
-    schema.ts             zod payload validation + referrer/path sanitising
+    mongo.ts             cached MongoDB client (server-only) + hard-cap guards
+    srv.ts               DNS-over-HTTPS resolver for mongodb+srv:// URIs
+    schema.ts            zod payload validation + referrer/path sanitising
     ingest.ts             visit/event writers + index creation
     queries.ts            dashboard aggregation pipelines
     ua.ts                 user-agent -> device/browser/os classifier

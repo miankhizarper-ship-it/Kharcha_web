@@ -1,6 +1,5 @@
-import { getAnalyticsDb } from "./analytics/mongo";
+import { withAnalyticsDb } from "./analytics/mongo";
 import { resolveBinding } from "./analytics/env";
-
 /**
  * App release registry — server-side source of truth for the mobile app's
  * in-app update checker (GET /api/app-version).
@@ -160,10 +159,13 @@ function releaseFromEnvironment(): AppRelease | null {
  * }
  */
 async function releaseFromDatabase(): Promise<AppRelease | null> {
-  const db = await getAnalyticsDb();
-  const doc = await db
-    .collection(APP_RELEASES_COLLECTION)
-    .findOne({ platform: "android", enabled: true }, { sort: { versionCode: -1 } });
+  const doc = await withAnalyticsDb(
+    (db) =>
+      db
+        .collection(APP_RELEASES_COLLECTION)
+        .findOne({ platform: "android", enabled: true }, { sort: { versionCode: -1 } }),
+    "release-lookup",
+  );
   if (!doc) return null;
   return sanitizeRelease({
     version: doc.version,
