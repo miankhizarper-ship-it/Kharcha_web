@@ -34,6 +34,8 @@ Funnel measured: **Visitor → page_view → download_click → APK download**.
   - `analytics_visits` — one doc per session: entry path, referrer host,
     device snapshot, country, first/last seen, pageview counter.
   - `analytics_events` — one doc per tracked event.
+  - `app_releases` — one doc per Android release for the mobile app's
+    in-app update system (highest `versionCode` with `enabled: true` wins).
   - Indexes (auto-created on first write): `ts`, `name+ts`, `visitorId+ts`,
     `path`, unique `visitorId+sessionId`; optional TTL when
     `ANALYTICS_RETENTION_DAYS` is set.
@@ -56,6 +58,12 @@ Funnel measured: **Visitor → page_view → download_click → APK download**.
 | `ANALYTICS_SESSION_SECRET` | recommended | signs the admin session cookie |
 | `ANALYTICS_IP_SALT` | optional | extra salt for the ephemeral IP hash |
 | `ANALYTICS_RETENTION_DAYS` | optional | auto-delete data older than N days (TTL) |
+| `APP_LATEST_VERSION` | optional | in-app update: latest version string (e.g. `1.1.0`) |
+| `APP_LATEST_VERSION_CODE` | optional | in-app update: latest Android versionCode (e.g. `2`) |
+| `APP_LATEST_APK_URL` | optional | in-app update: DIRECT https download URL of the APK |
+| `APP_RELEASE_NOTES` | optional | in-app update: JSON array of release-note strings |
+| `APP_UPDATE_MANDATORY` | optional | in-app update: `true` makes the update dialog non-dismissable |
+| `APP_RELEASE_SOURCE` | optional | `environment` or `database` — forces the release source |
 
 Never commit real secrets (`.env` / `.dev.vars` are git-ignored; only the
 `.example` files are shipped). Without these variables the site renders and
@@ -181,6 +189,42 @@ Node version. Add the same environment variables in Site settings →
 Environment variables, then deploy. (`next dev` and the dashboard work the
 same on any Node host.)
 
+## In-app update system (GET /api/app-version)
+
+The Android app checks this endpoint once per launch and offers to install a
+newer APK when the server's `versionCode` is higher than the installed one.
+It is fully independent of the landing page's download buttons.
+
+```json
+{
+  "version": "1.1.0",
+  "versionCode": 2,
+  "apkUrl": "https://…direct download link…",
+  "releaseNotes": ["Added monthly analytics"],
+  "mandatory": false
+}
+```
+
+- **404** = no release configured · **503** = lookup failed — the app
+  silently continues in both cases; this endpoint never blocks the app.
+- **Configure a release** (preferred): insert a document into the MongoDB
+  `app_releases` collection — `{platform:"android", version, versionCode,
+  apkUrl, releaseNotes, mandatory, enabled:true}`. Highest `versionCode`
+  wins; flip `enabled:false` to pull one.
+- **Or set env bindings** (`APP_LATEST_VERSION`, `APP_LATEST_VERSION_CODE`,
+  `APP_LATEST_APK_URL`, `APP_RELEASE_NOTES`, `APP_UPDATE_MANDATORY`) —
+  an env release overrides the database and keeps working during database
+  outages. `APP_RELEASE_SOURCE=environment|database` forces a mode.
+- `apkUrl` MUST be a **direct HTTPS file link** (the app downloads it), e.g.
+  the Drive direct form `https://drive.usercontent.google.com/download?id=<ID>&export=download&confirm=t`
+  or a GitHub Releases asset URL. Do not host the APK on the Worker itself
+  (25 MiB asset cap).
+- All payloads pass strict validation (https URL, positive integer
+  versionCode) before being served — see `src/lib/app-release.ts`.
+
+Full release workflow (version bumps, signing, testing): see the app repo's
+`RELEASE_PROCESS.md`.
+
 ## Change the APK download link
 
 Open `src/config/site.ts` and set `APK_DOWNLOAD_URL` — that single value feeds
@@ -207,6 +251,7 @@ src/
     admin/login/          dashboard sign-in
     admin/analytics/      private dashboard (KPIs, traffic, breakdowns)
     api/analytics/        POST ingestion endpoint
+    api/app-version/      GET latest release (mobile in-app update system)
     api/admin/            login / logout / env-check (diagnostic) endpoints
     globals.css           light/dark palettes, scrollbar theme
   components/
@@ -229,6 +274,8 @@ src/
     server-utils.ts       daily-rotating IP hash (never persisted)
   config/site.ts          APK_DOWNLOAD_URL, developer identity, SITE_URL —
                           single source of truth
+  lib/app-release.ts      release registry for /api/app-version (env +
+                          app_releases collection, strict sanitising)
   hooks/use-toast.ts
   lib/utils.ts
 public/assets/            app icon (logo, favicon, OpenGraph image)
